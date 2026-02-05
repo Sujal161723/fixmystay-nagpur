@@ -1,121 +1,67 @@
 "use client";
 import { useState } from "react";
-// Path check kar lena, agar lib folder app ke andar hai toh yahi rahega
-import { db } from "../lib/firebase"; 
-import { collection, addDoc } from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
-export default function PostProperty() {
+export default function PostAd() {
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
+  const [phone, setPhone] = useState("");
   const [area, setArea] = useState("");
-  const [phone, setPhone] = useState(""); // Naya phone state
+  const [image, setImage] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handlePost = async (e: React.FormEvent) => {
+  const handleUpload = async () => {
+    if (!image) return "";
+    const formData = new FormData();
+    formData.append("file", image);
+    formData.append("upload_preset", "nagpur_preset"); // Wahi preset jo banaya tha
+
+    const res = await fetch("https://api.cloudinary.com/v1_1/dtarhelmc/image/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    return data.secure_url;
+  };
+
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      // Data ko Firestore mein bhej rahe hain
+      const imageUrl = await handleUpload();
       await addDoc(collection(db, "properties"), {
-        title,
-        price: Number(price),
-        area,
-        phone, // Phone number database mein jayega
-        city: "Nagpur",
-        createdAt: new Date()
+        title, price, phone, area,
+        imageUrl,
+        createdAt: serverTimestamp(),
       });
-
-      alert("Mubarak ho! Nagpur ki property live ho gayi. 🎉");
-      router.push("/"); // Post hote hi Home page par bhej dega
+      router.push("/");
     } catch (err) {
-      console.error("Firebase Error:", err);
-      alert("Oops! Data save nahi ho paya. Ek baar internet check karo.");
-    } finally {
-      setLoading(false);
+      alert("Error ho gaya bhai!");
     }
+    setLoading(false);
   };
 
   return (
-    <main className="min-h-screen bg-white p-6 text-black">
-      <div className="max-w-md mx-auto">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-black text-blue-700 tracking-tighter italic">FixMyStay</h1>
-          <p className="text-gray-500 font-medium">Post your property in Nagpur</p>
-        </div>
+    <div className="max-w-md mx-auto p-6 bg-white min-h-screen text-black">
+      <h1 className="text-3xl font-black mb-6 italic text-blue-700">Add Property</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input type="text" placeholder="Ghar ka naam (e.g. 2BHK flat)" className="w-full p-4 border-2 rounded-2xl" onChange={(e) => setTitle(e.target.value)} required />
+        <input type="number" placeholder="Rent Kitna hai?" className="w-full p-4 border-2 rounded-2xl" onChange={(e) => setPrice(e.target.value)} required />
+        <input type="text" placeholder="Area (e.g. Itwari, Sitabuldi)" className="w-full p-4 border-2 rounded-2xl" onChange={(e) => setArea(e.target.value)} required />
+        <input type="tel" placeholder="Owner ka Phone Number" className="w-full p-4 border-2 rounded-2xl" onChange={(e) => setPhone(e.target.value)} required />
         
-        <div className="bg-white border-2 border-gray-100 p-6 rounded-[2rem] shadow-xl">
-          <form onSubmit={handlePost} className="space-y-4">
-            
-            {/* Property Title */}
-            <div>
-              <label className="text-[10px] font-bold text-blue-600 uppercase ml-2">Property Name</label>
-              <input 
-                required 
-                placeholder="e.g. Semi-Furnished 2BHK" 
-                className="w-full mt-1 bg-gray-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
-                value={title} 
-                onChange={(e) => setTitle(e.target.value)} 
-              />
-            </div>
-
-            {/* Price & Locality Row */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[10px] font-bold text-blue-600 uppercase ml-2">Monthly Rent (₹)</label>
-                <input 
-                  required 
-                  type="number" 
-                  placeholder="10000" 
-                  className="w-full mt-1 bg-gray-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
-                  value={price} 
-                  onChange={(e) => setPrice(e.target.value)} 
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-blue-600 uppercase ml-2">Area (Nagpur)</label>
-                <input 
-                  required 
-                  placeholder="e.g. Sadar" 
-                  className="w-full mt-1 bg-gray-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
-                  value={area} 
-                  onChange={(e) => setArea(e.target.value)} 
-                />
-              </div>
-            </div>
-
-            {/* Phone Number Field */}
-            <div>
-              <label className="text-[10px] font-bold text-blue-600 uppercase ml-2">WhatsApp / Phone No.</label>
-              <input 
-                required 
-                type="tel"
-                placeholder="91xxxxxxxx" 
-                className="w-full mt-1 bg-gray-50 border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
-                value={phone} 
-                onChange={(e) => setPhone(e.target.value)} 
-              />
-            </div>
-            
-            <button 
-              disabled={loading} 
-              className={`w-full py-5 mt-4 rounded-2xl font-black text-lg transition-all transform active:scale-95 shadow-lg ${
-                loading 
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                : 'bg-blue-700 text-white hover:bg-blue-800 shadow-blue-200'
-              }`}
-            >
-              {loading ? "SAVING TO CLOUD..." : "POST PROPERTY"}
-            </button>
-          </form>
+        <div className="border-2 border-dashed p-4 rounded-2xl text-center">
+          <input type="file" onChange={(e:any) => setImage(e.target.files[0])} className="text-sm" />
+          <p className="text-[10px] mt-2 text-gray-400">Ghar ki ek mast photo dalo</p>
         </div>
-        
-        <p className="text-center mt-6 text-gray-400 text-xs">
-          By posting, you agree to show your contact to buyers.
-        </p>
-      </div>
-    </main>
+
+        <button disabled={loading} className="w-full bg-blue-700 text-white p-4 rounded-2xl font-bold">
+          {loading ? "Ruko bhai, upload ho raha hai..." : "POST PROPERTY"}
+        </button>
+      </form>
+    </div>
   );
 }
