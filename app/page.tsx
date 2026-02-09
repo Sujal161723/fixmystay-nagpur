@@ -7,6 +7,7 @@ import Link from "next/link";
 export default function Home() {
   const [properties, setProperties] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All"); // Naya: Category filter state
 
   useEffect(() => {
     const q = query(collection(db, "properties"), orderBy("createdAt", "desc"));
@@ -16,11 +17,16 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  // Search filter logic
-  const filteredProperties = properties.filter(p => 
-    p.area.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Search and Category filter logic
+  const filteredProperties = properties.filter(p => {
+    const matchesSearch = p.area.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (p.landmark && p.landmark.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-[#f5f7fa] text-black font-sans">
@@ -35,20 +41,27 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Hero Search Section */}
-      <div className="bg-white py-12 px-6 shadow-sm mb-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-6">
-            Find your perfect stay in <span className="text-blue-600">Nagpur</span>
+      {/* Hero Search Section with Background Image */}
+      <div 
+        className="relative bg-cover bg-center py-20 px-6 shadow-md" 
+        style={{ backgroundImage: "url('https://res.cloudinary.com/dtarhelmc/image/upload/v1709405466/modern-apartments-residential-area_m265n1.jpg')" }} // Change this image URL if you have a better one
+      >
+        <div className="absolute inset-0 bg-black opacity-40"></div> {/* Dark overlay for text readability */}
+        <div className="relative z-10 max-w-4xl mx-auto text-center text-white">
+          <h1 className="text-3xl md:text-4xl font-extrabold mb-3">
+            Find your perfect stay in <span className="text-blue-300">Nagpur</span>
           </h1>
+          <p className="text-lg md:text-xl font-medium mb-8">
+            Direct. Verified. Your New Home Awaits!
+          </p>
           
           {/* Search Bar */}
           <div className="relative max-w-2xl mx-auto bg-white border-2 border-gray-200 rounded-2xl flex items-center p-2 shadow-xl focus-within:border-blue-500 transition-all">
-            <span className="ml-4 text-xl">🔍</span>
+            <span className="ml-4 text-xl text-gray-500">🔍</span>
             <input 
               type="text" 
               placeholder="Search by Locality (e.g. Manish Nagar, Dharampeth)" 
-              className="w-full p-4 outline-none font-medium text-slate-700"
+              className="w-full p-4 outline-none font-medium text-slate-700 bg-transparent"
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all hidden md:block">
@@ -56,11 +69,17 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Category Chips */}
+          {/* Category Chips - Now Clickable */}
           <div className="flex flex-wrap justify-center gap-4 mt-8">
-            {['Flat', 'PG', 'Shop', 'Plot'].map((cat) => (
-              <button key={cat} className="bg-gray-100 hover:bg-blue-50 hover:text-blue-600 px-6 py-2 rounded-full font-bold text-sm text-slate-600 transition-all border border-transparent hover:border-blue-200">
-                {cat}
+            {['All', 'Flat', 'PG', 'Shop', 'Plot'].map((cat) => (
+              <button 
+                key={cat} 
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-6 py-2 rounded-full font-bold text-sm transition-all 
+                  ${selectedCategory === cat ? 'bg-blue-600 text-white shadow-lg' : 'bg-white/20 text-white hover:bg-white/40'}
+                `}
+              >
+                {cat === "All" ? "All Properties" : cat}
               </button>
             ))}
           </div>
@@ -68,10 +87,10 @@ export default function Home() {
       </div>
 
       {/* Property Results */}
-      <div className="max-w-6xl mx-auto px-6 pb-20">
+      <div className="max-w-6xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl font-extrabold text-slate-800 uppercase tracking-wider">
-            {searchTerm ? `Results for "${searchTerm}"` : "Newly Added Properties"}
+            {searchTerm || selectedCategory !== "All" ? "Filtered Properties" : "Newly Added Properties"}
           </h2>
           <span className="text-sm font-bold text-slate-400">{filteredProperties.length} Properties found</span>
         </div>
