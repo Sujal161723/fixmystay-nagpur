@@ -167,18 +167,24 @@ export default function Home() {
         )}
       </div>
 
-      {/* --- FOOTER --- */}
-      <footer className="bg-slate-900 text-white py-16 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+      {/* --- FOOTER (Wapas Aa Gaya!) --- */}
+      <footer className="bg-slate-900 text-white py-16 px-6 mt-20">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-center md:text-left">
-            <h4 className="font-black text-2xl tracking-tighter mb-2">FIXMYSTAY</h4>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">Built for Nagpur with ❤️</p>
+            <h4 className="font-black text-2xl tracking-tighter mb-2 italic">FIXMYSTAY</h4>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold">
+              Nagpur's No. 1 Direct Rental Hub
+            </p>
           </div>
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-            © 2026 FixMyStay • Direct Marketplace
+          <div className="flex flex-col items-center md:items-end gap-2">
+            <div className="flex gap-6 text-[11px] font-black uppercase tracking-widest text-slate-400">
+              <Link href="/" className="hover:text-blue-400 transition">Home</Link>
+              <Link href="/post" className="hover:text-blue-400 transition">Post Ad</Link>
+              <a href="#" className="hover:text-blue-400 transition">Support</a>
+            </div>
+            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-4">
+              © 2026 FixMyStay Nagpur • No Brokers, No tension.
+            </p>
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
