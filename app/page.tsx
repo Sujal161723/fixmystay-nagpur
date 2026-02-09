@@ -7,7 +7,7 @@ import Link from "next/link";
 export default function Home() {
   const [properties, setProperties] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All"); // Naya: Category filter state
+  const [selectedCategory, setSelectedCategory] = useState("All"); 
 
   useEffect(() => {
     const q = query(collection(db, "properties"), orderBy("createdAt", "desc"));
@@ -17,7 +17,6 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  // Search and Category filter logic
   const filteredProperties = properties.filter(p => {
     const matchesSearch = p.area.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -41,12 +40,12 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Hero Search Section with Background Image */}
+      {/* Hero Search Section with YOUR Miniature House Background Image */}
       <div 
         className="relative bg-cover bg-center py-20 px-6 shadow-md" 
-        style={{ backgroundImage: "url('https://res.cloudinary.com/dtarhelmc/image/upload/v1709405466/modern-apartments-residential-area_m265n1.jpg')" }} // Change this image URL if you have a better one
+        style={{ backgroundImage: "url('https://res.cloudinary.com/dtarhelmc/image/upload/v1709405466/miniature-houses-background.jpg')" }} // <--- Yahan tumhari image URL daali hai
       >
-        <div className="absolute inset-0 bg-black opacity-40"></div> {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-black opacity-30"></div> {/* Slightly less dark overlay for this image */}
         <div className="relative z-10 max-w-4xl mx-auto text-center text-white">
           <h1 className="text-3xl md:text-4xl font-extrabold mb-3">
             Find your perfect stay in <span className="text-blue-300">Nagpur</span>
@@ -69,7 +68,7 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Category Chips - Now Clickable */}
+          {/* Category Chips - Clickable */}
           <div className="flex flex-wrap justify-center gap-4 mt-8">
             {['All', 'Flat', 'PG', 'Shop', 'Plot'].map((cat) => (
               <button 
