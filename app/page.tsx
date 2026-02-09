@@ -30,28 +30,56 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#f5f7fa] text-black font-sans">
       
-      {/* 99acres Style Header Section */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <span className="text-2xl font-black text-blue-700 tracking-tighter">FixMyStay</span>
-          <Link href="/post" className="border-2 border-blue-600 text-blue-600 px-5 py-2 rounded-xl font-bold text-sm hover:bg-blue-600 hover:text-white transition-all">
-            Post Property <span className="bg-blue-100 text-[10px] px-1 rounded ml-1">FREE</span>
-          </Link>
-        </div>
-      </div>
+      {/* --- 99ACRES STYLE PROFESSIONAL HEADER --- */}
+      <nav className="bg-[#2d3e50] text-white py-3 px-4 md:px-10 sticky top-0 z-50 shadow-md">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          
+          {/* Left Side: Brand & Slogan */}
+          <div className="flex flex-col group cursor-pointer">
+            <Link href="/" className="text-xl md:text-2xl font-black tracking-tighter leading-none">
+              FIXMYSTAY
+            </Link>
+            <span className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mt-1 hidden md:block">
+              Nagpur's No Broker Hub
+            </span>
+          </div>
 
-      {/* Hero Search Section with YOUR Miniature House Background Image */}
+          {/* Right Side: Navigation Links & Profile */}
+          <div className="flex items-center gap-4 md:gap-8">
+            {/* Desktop Navigation Links */}
+            <div className="hidden lg:flex items-center gap-6 text-[13px] font-semibold text-gray-200">
+              <Link href="#" className="hover:text-white transition">For Buyers</Link>
+              <Link href="#" className="hover:text-white transition">For Tenants</Link>
+              <Link href="#" className="hover:text-white transition">For Owners</Link>
+              <Link href="#" className="hover:text-white transition">For Dealers</Link>
+            </div>
+
+            <div className="flex items-center gap-3 md:gap-4 border-l border-gray-600 pl-4 md:pl-8">
+              <Link href="/post" className="bg-white text-[#2d3e50] px-4 py-1.5 rounded-lg font-bold text-xs hover:bg-gray-100 transition shadow-lg">
+                Post Property <span className="bg-green-500 text-white px-1 rounded ml-1 text-[9px]">FREE</span>
+              </Link>
+              
+              {/* Profile Icon Placeholder */}
+              <button className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-700 hover:bg-gray-600 transition border border-gray-500 shadow-inner group">
+                <span className="text-lg group-hover:scale-110 transition">👤</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Search Section with Background Image */}
       <div 
         className="relative bg-cover bg-center py-20 px-6 shadow-md" 
-        style={{ backgroundImage: "url('https://res.cloudinary.com/dtarhelmc/image/upload/v1770627386/banner-bg_mmg2jp.jpg')" }} // <--- Yahan tumhari image URL daali hai
+        style={{ backgroundImage: "url('https://res.cloudinary.com/dtarhelmc/image/upload/v1770627386/banner-bg_mmg2jp.jpg')" }}
       >
-        <div className="absolute inset-0 bg-black opacity-30"></div> {/* Slightly less dark overlay for this image */}
+        <div className="absolute inset-0 bg-black opacity-30"></div>
         <div className="relative z-10 max-w-4xl mx-auto text-center text-white">
           <h1 className="text-3xl md:text-4xl font-extrabold mb-3">
             Find your perfect stay in <span className="text-blue-300">Nagpur</span>
           </h1>
           <p className="text-lg md:text-xl font-medium mb-8">
-            Direct. Verified. Your New Home Awaits!
+            Nagpur ki Garmi se bacho 🍦 Direct. Verified.
           </p>
           
           {/* Search Bar */}
@@ -68,7 +96,7 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Category Chips - Clickable */}
+          {/* Category Chips */}
           <div className="flex flex-wrap justify-center gap-4 mt-8">
             {['All', 'Flat', 'PG', 'Shop', 'Plot'].map((cat) => (
               <button 
@@ -85,7 +113,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Property Results */}
+      {/* Property Results Section */}
       <div className="max-w-6xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl font-extrabold text-slate-800 uppercase tracking-wider">
@@ -97,8 +125,6 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredProperties.map((item) => (
             <div key={item.id} className="bg-white rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_20px_50px_rgba(8,_112,_184,_0.1)] transition-all duration-300">
-              
-              {/* Image & Badge */}
               <div className="relative h-56">
                 <img src={item.imageUrl || "https://via.placeholder.com/400x300"} alt={item.title} className="w-full h-full object-cover" />
                 <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest text-blue-600 shadow-md">
@@ -106,7 +132,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Details */}
               <div className="p-6">
                 <div className="flex justify-between items-start mb-2">
                   <span className="text-2xl font-black text-slate-900">₹{item.price}</span>
@@ -120,7 +145,6 @@ export default function Home() {
                   📍 {item.area} {item.landmark && <span className="text-blue-500 font-medium ml-1">• Near {item.landmark}</span>}
                 </p>
 
-                {/* Amenities List */}
                 {item.amenities && (
                   <div className="flex flex-wrap gap-2 mb-6">
                     {item.amenities.split(',').slice(0, 3).map((tag: string, i: number) => (
@@ -148,7 +172,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 99acres Style Footer */}
       <footer className="bg-slate-900 text-white py-12 px-6 mt-10">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 opacity-80">
           <div>
