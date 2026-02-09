@@ -43,7 +43,7 @@ export default function Home() {
       {/* Hero Search Section with YOUR Miniature House Background Image */}
       <div 
         className="relative bg-cover bg-center py-20 px-6 shadow-md" 
-        style={{ backgroundImage: "url('https://res.cloudinary.com/dtarhelmc/image/upload/v1709405466/miniature-houses-background.jpg')" }} // <--- Yahan tumhari image URL daali hai
+        style={{ backgroundImage: "url('https://res.cloudinary.com/dtarhelmc/image/upload/v1770627386/banner-bg_mmg2jp.jpg')" }} // <--- Yahan tumhari image URL daali hai
       >
         <div className="absolute inset-0 bg-black opacity-30"></div> {/* Slightly less dark overlay for this image */}
         <div className="relative z-10 max-w-4xl mx-auto text-center text-white">
