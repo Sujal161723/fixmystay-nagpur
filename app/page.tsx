@@ -6,6 +6,7 @@ import Link from "next/link";
 
 export default function Home() {
   const [properties, setProperties] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const q = query(collection(db, "properties"), orderBy("createdAt", "desc"));
@@ -15,87 +16,112 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
+  // Search filter logic
+  const filteredProperties = properties.filter(p => 
+    p.area.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    p.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen bg-[#f0f4f8] text-black font-sans">
+    <div className="min-h-screen bg-[#f5f7fa] text-black font-sans">
       
-      {/* --- OLD STYLE BLUE BANNER HEADER --- */}
-      <div className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-12 px-6 text-center shadow-lg">
-        <h1 className="text-5xl font-black italic tracking-tighter mb-2">FixMyStay</h1>
-        <p className="text-blue-100 font-bold uppercase tracking-[0.3em] text-xs">Nagpur's Direct Property Hub</p>
-        
-        <div className="mt-8 flex justify-center">
-          <Link href="/post" className="bg-white text-blue-700 px-8 py-4 rounded-2xl font-black text-sm hover:bg-gray-100 transition-all shadow-xl active:scale-95">
-             + POST YOUR AD FREE
+      {/* 99acres Style Header Section */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+          <span className="text-2xl font-black text-blue-700 tracking-tighter">FixMyStay</span>
+          <Link href="/post" className="border-2 border-blue-600 text-blue-600 px-5 py-2 rounded-xl font-bold text-sm hover:bg-blue-600 hover:text-white transition-all">
+            Post Property <span className="bg-blue-100 text-[10px] px-1 rounded ml-1">FREE</span>
           </Link>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="flex items-center gap-3 mb-10">
-          <div className="h-10 w-2 bg-blue-600 rounded-full"></div>
-          <h2 className="text-3xl font-black text-slate-800 italic">Fresh Listings in Nagpur 🏠</h2>
+      {/* Hero Search Section */}
+      <div className="bg-white py-12 px-6 shadow-sm mb-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-6">
+            Find your perfect stay in <span className="text-blue-600">Nagpur</span>
+          </h1>
+          
+          {/* Search Bar */}
+          <div className="relative max-w-2xl mx-auto bg-white border-2 border-gray-200 rounded-2xl flex items-center p-2 shadow-xl focus-within:border-blue-500 transition-all">
+            <span className="ml-4 text-xl">🔍</span>
+            <input 
+              type="text" 
+              placeholder="Search by Locality (e.g. Manish Nagar, Dharampeth)" 
+              className="w-full p-4 outline-none font-medium text-slate-700"
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <button className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all hidden md:block">
+              Search
+            </button>
+          </div>
+
+          {/* Category Chips */}
+          <div className="flex flex-wrap justify-center gap-4 mt-8">
+            {['Flat', 'PG', 'Shop', 'Plot'].map((cat) => (
+              <button key={cat} className="bg-gray-100 hover:bg-blue-50 hover:text-blue-600 px-6 py-2 rounded-full font-bold text-sm text-slate-600 transition-all border border-transparent hover:border-blue-200">
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Property Results */}
+      <div className="max-w-6xl mx-auto px-6 pb-20">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-xl font-extrabold text-slate-800 uppercase tracking-wider">
+            {searchTerm ? `Results for "${searchTerm}"` : "Newly Added Properties"}
+          </h2>
+          <span className="text-sm font-bold text-slate-400">{filteredProperties.length} Properties found</span>
         </div>
 
-        {/* Property Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {properties.map((item) => (
-            <div key={item.id} className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-white hover:shadow-2xl transition-all duration-500 group">
+          {filteredProperties.map((item) => (
+            <div key={item.id} className="bg-white rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_20px_50px_rgba(8,_112,_184,_0.1)] transition-all duration-300">
               
-              {/* Image & Category Badge */}
-              <div className="relative h-64">
-                <img src={item.imageUrl || "https://via.placeholder.com/400x300"} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                <div className="absolute top-4 left-4 bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
+              {/* Image & Badge */}
+              <div className="relative h-56">
+                <img src={item.imageUrl || "https://via.placeholder.com/400x300"} alt={item.title} className="w-full h-full object-cover" />
+                <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest text-blue-600 shadow-md">
                   {item.category}
                 </div>
               </div>
 
-              {/* Content Section */}
-              <div className="p-7">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-extrabold text-slate-800 leading-tight">{item.title}</h3>
-                  <span className="text-2xl font-black text-blue-600">₹{item.price}</span>
+              {/* Details */}
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-2xl font-black text-slate-900">₹{item.price}</span>
+                  <div className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md">
+                    <span>Verified</span>
+                  </div>
                 </div>
+                
+                <h3 className="text-lg font-bold text-slate-700 mb-1 truncate">{item.title}</h3>
+                <p className="text-sm font-bold text-slate-400 mb-4 flex items-center gap-1">
+                  📍 {item.area} {item.landmark && <span className="text-blue-500 font-medium ml-1">• Near {item.landmark}</span>}
+                </p>
 
-                {/* AREA & LANDMARK */}
-                <div className="flex flex-col gap-1 mb-4">
-                   <div className="flex items-center gap-2 text-slate-600 text-sm font-bold">
-                     <span className="text-blue-500 text-lg">📍</span> {item.area}
-                   </div>
-                   {item.landmark && (
-                     <p className="text-[11px] text-blue-600 font-bold italic ml-7">
-                       (Near {item.landmark})
-                     </p>
-                   )}
-                </div>
-
-                {/* AMENITIES TAGS */}
+                {/* Amenities List */}
                 {item.amenities && (
                   <div className="flex flex-wrap gap-2 mb-6">
-                    {item.amenities.split(',').map((tag: string, i: number) => (
-                      <span key={i} className="text-[9px] font-black uppercase tracking-wider bg-blue-50 text-blue-500 px-3 py-1.5 rounded-lg border border-blue-100">
-                        ✓ {tag.trim()}
+                    {item.amenities.split(',').slice(0, 3).map((tag: string, i: number) => (
+                      <span key={i} className="text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-100 px-2 py-1 rounded">
+                        {tag.trim()}
                       </span>
                     ))}
                   </div>
                 )}
 
-                {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="flex gap-2 border-t pt-5">
                   <a 
-                    href={`https://wa.me/${item.phone}?text=Hi, I'm interested in: ${item.title}`}
-                    className="flex-1 bg-slate-900 text-white text-center py-4 rounded-2xl font-black text-sm hover:bg-blue-600 transition-all shadow-lg"
+                    href={`https://wa.me/${item.phone}?text=Hi, interested in ${item.title}`}
+                    className="flex-1 bg-blue-600 text-white text-center py-3.5 rounded-xl font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all"
                   >
-                    CONTACT OWNER
+                    Contact Owner
                   </a>
-                  <button 
-                     onClick={() => {
-                      const text = `Property in ${item.area}: ${item.title} at ₹${item.price}. Link: ${window.location.href}`;
-                      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                    }}
-                    className="w-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center hover:bg-blue-100 transition-all border border-blue-100"
-                  >
-                    🔗
+                  <button className="w-12 h-12 flex items-center justify-center border-2 border-gray-100 rounded-xl hover:bg-gray-50 transition-all">
+                    ❤️
                   </button>
                 </div>
               </div>
@@ -104,10 +130,25 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Footer Banner */}
-      <footer className="w-full bg-slate-900 text-white py-10 px-6 text-center mt-20">
-        <p className="text-sm font-bold opacity-60 uppercase tracking-widest">© 2024 FixMyStay Nagpur</p>
-        <p className="text-[10px] mt-2 opacity-40 uppercase">Nagpur's #1 Direct Property Marketplace</p>
+      {/* 99acres Style Footer */}
+      <footer className="bg-slate-900 text-white py-12 px-6 mt-10">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 opacity-80">
+          <div>
+            <h4 className="font-black text-xl mb-4">FixMyStay</h4>
+            <p className="text-xs leading-relaxed">Direct property marketplace for Nagpur. No brokers. No hidden fees.</p>
+          </div>
+          <div>
+            <h4 className="font-bold mb-4">Quick Links</h4>
+            <ul className="text-xs space-y-2">
+              <li>Flats in Nagpur</li>
+              <li>PGs in Nagpur</li>
+              <li>Post Property Free</li>
+            </ul>
+          </div>
+          <div className="text-xs">
+            <p>© 2024 FixMyStay Nagpur. All Rights Reserved.</p>
+          </div>
+        </div>
       </footer>
     </div>
   );
