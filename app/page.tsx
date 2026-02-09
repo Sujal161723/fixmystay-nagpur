@@ -16,90 +16,99 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-black font-sans">
-      {/* Navbar with Logo */}
-      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 h-20 flex justify-between items-center">
-          <div className="flex flex-col items-start leading-none">
-            <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="FMS" className="h-8 w-auto" />
-              <span className="text-2xl font-black text-blue-600 tracking-tighter italic">FMS</span>
-            </div>
-            <p className="text-[9px] font-black text-gray-400 tracking-[0.4em] uppercase mt-1 ml-1">FIXMYSTAY</p>
-          </div>
-          <Link href="/post" className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
-            + Post Property
+    <div className="min-h-screen bg-[#f0f4f8] text-black font-sans">
+      
+      {/* --- OLD STYLE BLUE BANNER HEADER --- */}
+      <div className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-12 px-6 text-center shadow-lg">
+        <h1 className="text-5xl font-black italic tracking-tighter mb-2">FixMyStay</h1>
+        <p className="text-blue-100 font-bold uppercase tracking-[0.3em] text-xs">Nagpur's Direct Property Hub</p>
+        
+        <div className="mt-8 flex justify-center">
+          <Link href="/post" className="bg-white text-blue-700 px-8 py-4 rounded-2xl font-black text-sm hover:bg-gray-100 transition-all shadow-xl active:scale-95">
+             + POST YOUR AD FREE
           </Link>
         </div>
-      </nav>
-
-      {/* Hero Section */}
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-2 italic">Nagpur's Fresh Listings 🏠</h1>
-        <p className="text-slate-500 font-medium">Find direct rentals in Sitabuldi, Dharampeth, Manish Nagar & more.</p>
       </div>
 
-      {/* Property Grid */}
-      <div className="max-w-6xl mx-auto px-6 pb-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {properties.map((item) => (
-          <div key={item.id} className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
-            {/* Image & Category Badge */}
-            <div className="relative h-64">
-              <img src={item.imageUrl || "https://via.placeholder.com/400x300"} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-blue-600 shadow-sm">
-                {item.category}
-              </div>
-            </div>
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="flex items-center gap-3 mb-10">
+          <div className="h-10 w-2 bg-blue-600 rounded-full"></div>
+          <h2 className="text-3xl font-black text-slate-800 italic">Fresh Listings in Nagpur 🏠</h2>
+        </div>
 
-            {/* Content Section */}
-            <div className="p-7">
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="text-xl font-bold text-slate-800 leading-tight">{item.title}</h3>
-                <span className="text-2xl font-black text-blue-600">₹{item.price}</span>
-              </div>
-
-              <div className="flex items-center gap-2 text-slate-500 text-sm font-bold mb-4">
-                <span className="text-blue-500">📍</span> {item.area}
-                {item.landmark && (
-                  <span className="bg-blue-50 text-blue-600 text-[10px] px-2 py-0.5 rounded-md italic">
-                    near {item.landmark}
-                  </span>
-                )}
-              </div>
-
-              {/* Amenities Tags */}
-              {item.amenities && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {item.amenities.split(',').map((tag: string, i: number) => (
-                    <span key={i} className="text-[9px] font-black uppercase tracking-wider bg-slate-50 text-slate-400 px-3 py-1.5 rounded-lg border border-slate-100">
-                      ⚡ {tag.trim()}
-                    </span>
-                  ))}
+        {/* Property Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {properties.map((item) => (
+            <div key={item.id} className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-white hover:shadow-2xl transition-all duration-500 group">
+              
+              {/* Image & Category Badge */}
+              <div className="relative h-64">
+                <img src={item.imageUrl || "https://via.placeholder.com/400x300"} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div className="absolute top-4 left-4 bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
+                  {item.category}
                 </div>
-              )}
+              </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <a 
-                  href={`https://wa.me/${item.phone}?text=Hi, I'm interested in your property: ${item.title}`}
-                  className="flex-1 bg-slate-900 text-white text-center py-4 rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-xl shadow-slate-100"
-                >
-                  Contact Owner
-                </a>
-                <button 
-                   onClick={() => {
-                    const text = `Check out this property in ${item.area}: ${item.title} for ₹${item.price}. Link: ${window.location.href}`;
-                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                  }}
-                  className="w-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center hover:bg-blue-100 transition-all border border-blue-100"
-                >
-                  🔗
-                </button>
+              {/* Content Section */}
+              <div className="p-7">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-xl font-extrabold text-slate-800 leading-tight">{item.title}</h3>
+                  <span className="text-2xl font-black text-blue-600">₹{item.price}</span>
+                </div>
+
+                {/* AREA & LANDMARK */}
+                <div className="flex flex-col gap-1 mb-4">
+                   <div className="flex items-center gap-2 text-slate-600 text-sm font-bold">
+                     <span className="text-blue-500 text-lg">📍</span> {item.area}
+                   </div>
+                   {item.landmark && (
+                     <p className="text-[11px] text-blue-600 font-bold italic ml-7">
+                       (Near {item.landmark})
+                     </p>
+                   )}
+                </div>
+
+                {/* AMENITIES TAGS */}
+                {item.amenities && (
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {item.amenities.split(',').map((tag: string, i: number) => (
+                      <span key={i} className="text-[9px] font-black uppercase tracking-wider bg-blue-50 text-blue-500 px-3 py-1.5 rounded-lg border border-blue-100">
+                        ✓ {tag.trim()}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <a 
+                    href={`https://wa.me/${item.phone}?text=Hi, I'm interested in: ${item.title}`}
+                    className="flex-1 bg-slate-900 text-white text-center py-4 rounded-2xl font-black text-sm hover:bg-blue-600 transition-all shadow-lg"
+                  >
+                    CONTACT OWNER
+                  </a>
+                  <button 
+                     onClick={() => {
+                      const text = `Property in ${item.area}: ${item.title} at ₹${item.price}. Link: ${window.location.href}`;
+                      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                    }}
+                    className="w-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center hover:bg-blue-100 transition-all border border-blue-100"
+                  >
+                    🔗
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
+
+      {/* Footer Banner */}
+      <footer className="w-full bg-slate-900 text-white py-10 px-6 text-center mt-20">
+        <p className="text-sm font-bold opacity-60 uppercase tracking-widest">© 2024 FixMyStay Nagpur</p>
+        <p className="text-[10px] mt-2 opacity-40 uppercase">Nagpur's #1 Direct Property Marketplace</p>
+      </footer>
     </div>
   );
 }
