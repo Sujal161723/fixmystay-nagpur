@@ -28,7 +28,6 @@ export default function Home() {
     return matchesSearch && matchesCategory;
   });
 
-  // Outline Icons Data
   const categories = [
     { id: 'All', label: 'All Stays', path: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
     { id: 'Flat', label: 'Flats', path: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
@@ -67,7 +66,6 @@ export default function Home() {
             Find your perfect stay in <span className="text-blue-400">Nagpur</span>
           </h1>
           
-          {/* Search Box */}
           <div className="relative max-w-2xl mx-auto bg-white border border-gray-100 rounded-[2rem] flex items-center p-2 shadow-2xl mt-10">
             <input 
               type="text" 
@@ -80,7 +78,6 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Minimal Outline Category Filter */}
           <div className="flex flex-wrap justify-center gap-6 md:gap-10 mt-12">
             {categories.map((cat) => (
               <button 
@@ -111,7 +108,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="flex items-end justify-between mb-12">
           <div>
-            <p className="text-blue-600 font-black text-xs uppercase tracking-[0.3em] mb-2 text-outline">Nagpur Listings</p>
+            <p className="text-blue-600 font-black text-xs uppercase tracking-[0.3em] mb-2">Nagpur Listings</p>
             <h2 className="text-3xl font-black text-slate-900 tracking-tighter">
               {selectedCategory === "All" ? "Fresh Recommendations" : `${selectedCategory}s in Nagpur`}
             </h2>
@@ -126,7 +123,6 @@ export default function Home() {
             {filteredProperties.map((item) => (
               <Link href={`/property/${item.id}`} key={item.id} className="group">
                 <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-100 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 flex flex-col h-full transform hover:-translate-y-3">
-                  
                   <div className="relative h-64 overflow-hidden">
                     <img 
                       src={item.imageUrl || "https://via.placeholder.com/400x300"} 
@@ -143,12 +139,10 @@ export default function Home() {
                       <span className="text-3xl font-black text-blue-600">₹{item.price}<span className="text-xs text-slate-400">/mo</span></span>
                       <span className="text-[10px] font-black text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-tighter">Verified</span>
                     </div>
-                    
                     <h3 className="text-xl font-black text-slate-800 mb-2 truncate group-hover:text-blue-600 transition-colors">{item.title}</h3>
                     <p className="text-sm font-bold text-slate-400 flex items-center gap-1 mb-6">
                       📍 {item.area} {item.landmark && <span className="text-blue-400 font-medium">• {item.landmark}</span>}
                     </p>
-
                     <div className="flex gap-2 border-t border-slate-50 pt-6 mt-auto">
                       <div className="flex-1 bg-slate-900 text-white text-center py-4 rounded-2xl font-black text-xs uppercase tracking-widest group-hover:bg-blue-600 transition-all">
                         View Details
@@ -161,30 +155,19 @@ export default function Home() {
           </div>
         ) : (
           <div className="text-center py-32 bg-white rounded-[3rem] border-2 border-dashed border-slate-200">
-            <div className="text-4xl mb-4">🏜️</div>
-            <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No properties found in this area</p>
+            <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No properties found</p>
           </div>
         )}
       </div>
 
-      {/* --- FOOTER (Wapas Aa Gaya!) --- */}
-      <footer className="bg-slate-900 text-white py-16 px-6 mt-20">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="text-center md:text-left">
-            <h4 className="font-black text-2xl tracking-tighter mb-2 italic">FIXMYSTAY</h4>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold">
-              Nagpur's No. 1 Direct Rental Hub
-            </p>
-          </div>
-          <div className="flex flex-col items-center md:items-end gap-2">
-            <div className="flex gap-6 text-[11px] font-black uppercase tracking-widest text-slate-400">
-              <Link href="/" className="hover:text-blue-400 transition">Home</Link>
-              <Link href="/post" className="hover:text-blue-400 transition">Post Ad</Link>
-              <a href="#" className="hover:text-blue-400 transition">Support</a>
-            </div>
-            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-4">
-              © 2026 FixMyStay Nagpur • No Brokers, No tension.
-            </p>
+      <footer className="bg-slate-900 text-white py-16 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <h4 className="font-black text-2xl tracking-tighter">FIXMYSTAY</h4>
+          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            © 2026 FixMyStay • Direct Marketplace
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
