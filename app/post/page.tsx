@@ -10,6 +10,8 @@ export default function PostAd() {
   const [price, setPrice] = useState("");
   const [phone, setPhone] = useState("");
   const [area, setArea] = useState("");
+  const [landmark, setLandmark] = useState(""); // Naya: Landmark state
+  const [amenities, setAmenities] = useState(""); // Naya: Amenities state
   const [category, setCategory] = useState("Flat");
   const [image, setImage] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -19,9 +21,8 @@ export default function PostAd() {
     if (!image) return "";
     const formData = new FormData();
     formData.append("file", image);
-    formData.append("upload_preset", "nagpur_preset"); // Sujal, check kar lena Cloudinary mein preset name yahi hai na?
+    formData.append("upload_preset", "nagpur_preset");
 
-    // Yahan tera Cloud Name 'dtarhelmc' add kar diya hai
     const res = await fetch("https://api.cloudinary.com/v1_1/dtarhelmc/image/upload", {
       method: "POST",
       body: formData,
@@ -36,132 +37,126 @@ export default function PostAd() {
     try {
       const imageUrl = await handleUpload();
       await addDoc(collection(db, "properties"), {
-        title, price, phone, area, category,
+        title, 
+        price, 
+        phone, 
+        area, 
+        landmark, // Landmark save ho raha hai
+        amenities, // Amenities save ho rahi hai
+        category,
         imageUrl,
         createdAt: serverTimestamp(),
       });
       router.push("/");
     } catch (err) {
       console.error(err);
-      alert("Error ho gaya bhai! Check karo Cloudinary preset sahi hai kya.");
+      alert("Error! Cloudinary preset check karo.");
     }
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-[#f0f4f8] flex flex-col items-center py-10 px-4 text-black">
-      <div className="max-w-4xl w-full mb-6">
+    <div className="min-h-screen bg-[#f0f4f8] flex flex-col items-center py-10 px-4 text-black font-sans">
+      <div className="max-w-4xl w-full mb-6 flex justify-between items-center">
         <Link href="/" className="text-blue-600 font-bold flex items-center gap-2 hover:underline">
-          ← Back to Marketplace
+          ← Back to Nagpur Properties
         </Link>
       </div>
 
-      <div className="max-w-4xl w-full bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row">
+      <div className="max-w-4xl w-full bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row border border-white">
         
-        {/* Professional Sidebar */}
-        <div className="md:w-1/3 bg-gradient-to-br from-blue-600 to-blue-800 p-10 text-white flex flex-col justify-between">
+        {/* Sidebar */}
+        <div className="md:w-1/3 bg-gradient-to-br from-blue-700 to-indigo-900 p-10 text-white flex flex-col justify-between">
           <div>
-            <h2 className="text-3xl font-black mb-4 italic">List Your Property</h2>
-            <p className="text-blue-100 text-sm leading-relaxed">
-              Nagpur ki sabse badi community ka hissa banein. Apni property ko 1 minute mein live karein.
+            <h2 className="text-4xl font-black mb-4 italic leading-tight">Post Your Ad Free</h2>
+            <p className="text-blue-100 text-sm leading-relaxed opacity-80 font-medium">
+              Find the perfect tenant or buyer in Nagpur today.
             </p>
           </div>
-          <div className="space-y-6 mt-10">
-            <div className="flex items-center gap-4">
-              <span className="bg-white/20 p-2 rounded-lg text-xl">📸</span>
-              <p className="text-xs font-medium">High quality photos attract 3x more leads</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="bg-white/20 p-2 rounded-lg text-xl">✅</span>
-              <p className="text-xs font-medium">Verified listings rank higher in search</p>
+          <div className="mt-10 space-y-6">
+            <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-blue-200 mb-1">Visibility</p>
+              <p className="text-lg font-bold">Direct to Students & Families</p>
             </div>
           </div>
         </div>
 
         {/* Form Section */}
-        <div className="md:w-2/3 p-10">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="md:w-2/3 p-8 md:p-10">
+          <form onSubmit={handleSubmit} className="space-y-5">
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Property Type</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Category</label>
                 <select 
-                  className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white transition-all font-bold outline-none"
+                  className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-gray-100 focus:border-blue-500 transition-all font-bold outline-none cursor-pointer"
                   onChange={(e) => setCategory(e.target.value)}
                 >
                   <option value="Flat">🏢 Flat / Apartment</option>
                   <option value="PG">🏠 PG / Hostel</option>
-                  <option value="Shop">🏢 Shop / Office</option>
+                  <option value="Shop">🛍️ Shop / Office</option>
                   <option value="Plot">🌳 Plot / Land</option>
                 </select>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Expected Rent/Price (₹)</label>
-                <input 
-                  type="number" 
-                  placeholder="e.g. 15000" 
-                  className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white transition-all font-bold outline-none"
-                  onChange={(e) => setPrice(e.target.value)} 
-                  required 
-                />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Price / Rent (₹)</label>
+                <input type="number" placeholder="e.g. 12000" className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-gray-100 focus:border-blue-500 transition-all font-bold outline-none text-blue-600" onChange={(e) => setPrice(e.target.value)} required />
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Property Title</label>
-              <input 
-                type="text" 
-                placeholder="e.g. Fully Furnished 2BHK in Dharampeth" 
-                className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white transition-all font-bold outline-none"
-                onChange={(e) => setTitle(e.target.value)} 
-                required 
-              />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Property Title</label>
+              <input type="text" placeholder="e.g. Luxury 2BHK with Balcony" className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-gray-100 focus:border-blue-500 transition-all font-bold outline-none" onChange={(e) => setTitle(e.target.value)} required />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Locality (Nagpur Area)</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Sadar, Civil Lines" 
-                  className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white transition-all font-bold outline-none"
-                  onChange={(e) => setArea(e.target.value)} 
-                  required 
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Locality (Nagpur Area)</label>
+                <input type="text" placeholder="e.g. Manish Nagar" className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-gray-100 focus:border-blue-500 transition-all font-bold outline-none" onChange={(e) => setArea(e.target.value)} required />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Owner Contact Number</label>
-                <input 
-                  type="tel" 
-                  placeholder="98XXXXXXXX" 
-                  className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white transition-all font-bold outline-none"
-                  onChange={(e) => setPhone(e.target.value)} 
-                  required 
-                />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">WhatsApp Number</label>
+                <input type="tel" placeholder="9876543210" className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-gray-100 focus:border-blue-500 transition-all font-bold outline-none" onChange={(e) => setPhone(e.target.value)} required />
               </div>
             </div>
 
-            {/* Upload Area */}
-            <div className="relative border-2 border-dashed border-gray-200 p-8 rounded-[2rem] text-center hover:border-blue-500 transition-all group bg-gray-50">
-              <input 
-                type="file" 
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                onChange={(e:any) => setImage(e.target.files[0])} 
-              />
+            {/* NAYA SECTION: LANDMARK & AMENITIES */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nearby Landmark</label>
+                <input type="text" placeholder="e.g. 2 min from Metro Station" className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-gray-100 focus:border-blue-500 transition-all font-bold outline-none" onChange={(e) => setLandmark(e.target.value)} />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Facilities / Amenities</label>
+                <input type="text" placeholder="e.g. WiFi, Lift, RO Water" className="w-full p-4 rounded-2xl bg-gray-50 border-2 border-gray-100 focus:border-blue-500 transition-all font-bold outline-none" onChange={(e) => setAmenities(e.target.value)} />
+              </div>
+            </div>
+
+            {/* Image Upload */}
+            <div className="relative border-2 border-dashed border-blue-200 p-8 rounded-[2rem] text-center hover:border-blue-500 transition-all group bg-blue-50/30 overflow-hidden min-h-[140px] flex items-center justify-center">
+              <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" onChange={(e:any) => setImage(e.target.files[0])} />
               <div className="flex flex-col items-center">
-                <span className="text-4xl mb-2 group-hover:scale-110 transition-transform">🖼️</span>
-                <p className="font-bold text-gray-600">Click to upload property image</p>
-                {image && <p className="text-blue-600 font-bold mt-2 text-xs">Selected: {image.name}</p>}
+                {image ? (
+                  <div className="relative z-10">
+                    <img src={URL.createObjectURL(image)} className="h-24 w-auto rounded-xl shadow-lg border-2 border-white" alt="Preview" />
+                    <p className="text-blue-600 font-black mt-2 text-[10px] uppercase">Change Photo</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                      <span className="text-2xl">📸</span>
+                    </div>
+                    <p className="font-bold text-gray-700 text-sm">Add Property Photo</p>
+                  </>
+                )}
               </div>
             </div>
 
-            <button 
-              disabled={loading} 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white p-5 rounded-2xl font-black text-lg shadow-xl shadow-blue-100 transition-all active:scale-95 disabled:bg-gray-400"
-            >
-              {loading ? "UPLOADING TO MARKETPLACE..." : "LIST PROPERTY NOW"}
+            <button disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white p-5 rounded-[1.5rem] font-black text-xl shadow-xl shadow-blue-100 transition-all active:scale-95 disabled:bg-gray-400 flex items-center justify-center gap-3">
+              {loading ? <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> LISTING... </> : "PUBLISH AD NOW"}
             </button>
           </form>
         </div>
