@@ -1,10 +1,9 @@
 "use client";
 import { useState } from "react";
-import { auth } from "@/lib/firebase"; 
+import { auth } from "../lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
 
-// Is function ka naam aur 'export default' hona zaroori hai
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,47 +15,36 @@ export default function AdminLogin() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      alert("Welcome back, Boss! 😎");
       router.push("/admin-dashboard");
     } catch (error: any) {
-      alert("Galti hai bhai! Email/Password sahi dalo.");
-      console.error(error);
+      alert("Galti hai! Email/Password check karo.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
       <div className="bg-white p-10 rounded-[2rem] shadow-xl w-full max-w-md">
-        <h1 className="text-2xl font-black mb-6 text-center italic">FIXMYSTAY ADMIN</h1>
-        
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="text-xs font-bold uppercase text-slate-400 ml-1">Email</label>
-            <input 
-              type="email" 
-              required
-              className="w-full p-4 mt-1 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-blue-500 transition"
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold uppercase text-slate-400 ml-1">Password</label>
-            <input 
-              type="password" 
-              required
-              className="w-full p-4 mt-1 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-blue-500 transition"
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          <button 
-            type="submit"
-            disabled={loading}
-            className="w-full bg-slate-900 text-white py-4 rounded-xl font-black hover:bg-blue-600 transition disabled:bg-slate-400"
-          >
-            {loading ? "Chalu hai..." : "LOGIN"}
+        <h1 className="text-2xl font-black text-center mb-8 uppercase italic">Admin Access</h1>
+        <form onSubmit={handleLogin} className="space-y-6">
+          <input 
+            type="email" 
+            placeholder="Admin Email" 
+            className="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 outline-none"
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input 
+            type="password" 
+            placeholder="Password" 
+            className="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 outline-none"
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button className="w-full bg-slate-900 text-white py-4 rounded-xl font-black hover:bg-blue-600 transition">
+            {loading ? "Checking..." : "LOGIN"}
           </button>
         </form>
       </div>
