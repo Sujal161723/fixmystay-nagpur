@@ -16,7 +16,7 @@ export default function AdminLogin() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       alert("Welcome back, Boss! 😎");
-      router.push("/admin-dashboard");
+      router.push("/admindashboard");
     } catch (error: any) {
       alert("Galti hai! Email/Password check karo.");
     } finally {
