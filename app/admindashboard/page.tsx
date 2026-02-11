@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { db, auth } from "../lib/firebase"; // Path check kar lena
+import { db, auth } from "../lib/firebase";
 import { collection, query, orderBy, onSnapshot, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
