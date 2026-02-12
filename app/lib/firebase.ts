@@ -1,21 +1,24 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth"; // Auth import kiya
+import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage"; // Storage bhi add kar diya image upload ke liye
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB6NsMuu4tMwwvnuRg1Nj3YcM8q3DtEO_Q",
-  authDomain: "fixmystay-ngp.firebaseapp.com",
-  projectId: "fixmystay-ngp",
-  storageBucket: "fixmystay-ngp.firebasestorage.app",
-  messagingSenderId: "895631994164",
-  appId: "1:895631994164:web:25a153817d44f41f238961",
-  measurementId: "G-P23VC1HR48"
+  // Hum yahan process.env use kar rahe hain jo Vercel se values uthayega
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app); // Auth initialize kiya
+const auth = getAuth(app);
+const storage = getStorage(app); // Storage initialize kiya
 
-// Dono ko export kar rahe hain taaki har jagah use ho sakein
-export { db, auth };
+// Teeno ko export kar rahe hain
+export { db, auth, storage };
