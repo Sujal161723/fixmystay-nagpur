@@ -9,7 +9,9 @@ import { Phone, MessageCircle, MapPin, Check, Share2, ChevronLeft, Info, Wind } 
 
 export default function PropertyDetail() {
   const params = useParams();
-  const id = params?.id;
+  // Safe ID handling for TypeScript
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  
   const [property, setProperty] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -17,12 +19,16 @@ export default function PropertyDetail() {
     const getProperty = async () => {
       if (!id) return;
       try {
-        const docRef = doc(db, "properties", id as string);
+        const docRef = doc(db, "properties", id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setProperty({ id: docSnap.id, ...docSnap.data() });
         }
-      } catch (err) { console.error(err); } finally { setLoading(false); }
+      } catch (err) { 
+        console.error("Firebase Error:", err); 
+      } finally { 
+        setLoading(false); 
+      }
     };
     getProperty();
   }, [id]);
@@ -36,9 +42,17 @@ export default function PropertyDetail() {
     </div>
   );
 
-  if (!property) return <div className="h-screen flex items-center justify-center font-bold">Property Not Found!</div>;
+  if (!property) return (
+    <div className="h-screen flex flex-col items-center justify-center gap-4">
+      <p className="font-bold text-slate-400 italic">Property Not Found!</p>
+      <Link href="/" className="text-blue-600 font-black border-b-2 border-blue-600">Go Home</Link>
+    </div>
+  );
 
   const waMessage = encodeURIComponent(`Hello FixMyStay, I am interested in "${property.title}". Is it available?`);
+
+  // Safe Listing ID logic to fix the "toUpperCase" error
+  const displayId = id ? id.slice(-8).toUpperCase() : "N/A";
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-28">
@@ -67,7 +81,7 @@ export default function PropertyDetail() {
             <div className="space-y-6">
               <div className="flex items-center gap-3">
                 <span className="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100">
-                  {property.category}
+                  {property.category || "Property"}
                 </span>
               </div>
               <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">{property.title}</h2>
@@ -85,7 +99,7 @@ export default function PropertyDetail() {
                 <h3 className="font-black uppercase text-xs tracking-[0.2em]">Property Overview</h3>
               </div>
               <p className="text-slate-600 text-lg leading-relaxed max-w-3xl font-medium">
-                {property.description}
+                {property.description || "No description provided for this property."}
               </p>
             </div>
 
@@ -96,12 +110,14 @@ export default function PropertyDetail() {
                 <h3 className="font-black uppercase text-xs tracking-[0.2em]">Key Features</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {property.amenities?.split(',').map((a: string, i: number) => (
+                {property.amenities ? property.amenities.split(',').map((a: string, i: number) => (
                   <div key={i} className="flex items-center gap-3 p-5 border border-slate-100 rounded-2xl bg-white hover:border-blue-200 transition-colors">
                     <div className="bg-blue-50 p-1.5 rounded-full"><Check size={14} className="text-blue-600" /></div>
                     <span className="font-bold text-slate-700 text-sm tracking-tight">{a.trim()}</span>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-slate-400 text-sm italic">Standard features included</p>
+                )}
               </div>
             </div>
           </div>
@@ -124,7 +140,7 @@ export default function PropertyDetail() {
               </div>
               
               <div className="pt-6 border-t border-slate-50">
-                <p className="text-[10px] text-center text-slate-400 font-black uppercase tracking-widest">Listing ID: {id?.slice(-8).toUpperCase()}</p>
+                <p className="text-[10px] text-center text-slate-400 font-black uppercase tracking-widest italic">Listing ID: {displayId}</p>
               </div>
             </div>
           </div>
