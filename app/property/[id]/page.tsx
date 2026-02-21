@@ -4,12 +4,10 @@ import { useParams } from "next/navigation";
 import { db } from "../../lib/firebase"; 
 import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
-// Outline Icons only
-import { Phone, MessageCircle, MapPin, Check, Share2, ChevronLeft, Info, Wind } from "lucide-react";
+import { Phone, MessageCircle, MapPin, Check, ChevronLeft, Share2, Home, Maximize, Layers, Calendar, User, ShieldCheck } from "lucide-react";
 
 export default function PropertyDetail() {
   const params = useParams();
-  // Safe ID handling for TypeScript
   const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
   
   const [property, setProperty] = useState<any>(null);
@@ -24,140 +22,130 @@ export default function PropertyDetail() {
         if (docSnap.exists()) {
           setProperty({ id: docSnap.id, ...docSnap.data() });
         }
-      } catch (err) { 
-        console.error("Firebase Error:", err); 
-      } finally { 
-        setLoading(false); 
-      }
+      } catch (err) { console.error(err); } finally { setLoading(false); }
     };
     getProperty();
   }, [id]);
 
-  if (loading) return (
-    <div className="h-screen flex items-center justify-center bg-white">
-      <div className="flex flex-col items-center gap-2">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Loading Details</p>
-      </div>
-    </div>
-  );
+  if (loading) return <div className="h-screen flex items-center justify-center bg-white italic font-black text-slate-400 uppercase tracking-widest">Loading Property...</div>;
+  if (!property) return <div className="h-screen flex items-center justify-center font-bold">Property Not Found!</div>;
 
-  if (!property) return (
-    <div className="h-screen flex flex-col items-center justify-center gap-4">
-      <p className="font-bold text-slate-400 italic">Property Not Found!</p>
-      <Link href="/" className="text-blue-600 font-black border-b-2 border-blue-600">Go Home</Link>
-    </div>
-  );
-
-  const waMessage = encodeURIComponent(`Hello FixMyStay, I am interested in "${property.title}". Is it available?`);
-
-  // Safe Listing ID logic to fix the "toUpperCase" error
-  const displayId = id ? id.slice(-8).toUpperCase() : "N/A";
+  const waMessage = encodeURIComponent(`Hi, I'm interested in "${property.title}" (Ref: ${id?.slice(-6)}) on FixMyStay.`);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 pb-28">
+    <div className="min-h-screen bg-[#F4F6F9] text-slate-800 pb-20">
       
-      {/* --- MINIMALIST NAV --- */}
-      <nav className="sticky top-0 z-[100] bg-white/80 backdrop-blur-md border-b border-slate-100 p-5">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link href="/" className="p-2 hover:bg-slate-50 rounded-xl transition border border-slate-100"><ChevronLeft size={20}/></Link>
-          <span className="font-black text-lg tracking-tighter italic">FIXMYSTAY</span>
-          <button className="p-2 hover:bg-slate-50 rounded-xl border border-slate-100"><Share2 size={18}/></button>
+      {/* --- TOP NAV --- */}
+      <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 px-4 py-3">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-1 text-slate-500 font-bold text-sm"><ChevronLeft size={20}/> Back</Link>
+          <div className="font-black text-xl italic tracking-tighter text-blue-700">FIXMYSTAY</div>
+          <button className="text-slate-500"><Share2 size={20}/></button>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-6 mt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="max-w-6xl mx-auto mt-6 px-4">
+        
+        {/* --- MAIN HEADER --- */}
+        <div className="bg-white p-6 rounded-t-3xl border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider">Ready to Move</span>
+              <span className="text-slate-400 text-xs font-bold">Updated Just Now</span>
+            </div>
+            <h1 className="text-3xl font-black text-slate-900 leading-tight">{property.title}</h1>
+            <p className="flex items-center gap-1 text-slate-500 font-semibold mt-1 italic text-sm">
+              <MapPin size={14}/> {property.area}, Nagpur, Maharashtra
+            </p>
+          </div>
+          <div className="text-left md:text-right">
+            <h2 className="text-4xl font-black text-blue-700 tracking-tighter">₹{property.price}</h2>
+            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Per Month Rent</p>
+          </div>
+        </div>
+
+        {/* --- IMAGE & QUICK INFO GRID --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-1 bg-white border-x border-b border-slate-200 rounded-b-3xl overflow-hidden shadow-sm">
+          {/* Main Image */}
+          <div className="lg:col-span-7 bg-slate-100">
+            <img src={property.imageUrl} className="w-full h-[400px] object-cover" alt="property" />
+          </div>
+
+          {/* Quick Facts Grid (99acres style) */}
+          <div className="lg:col-span-5 p-8 grid grid-cols-2 gap-y-8 gap-x-4 bg-white self-center">
+            <QuickFact icon={<Home size={20}/>} label="Configuration" value={property.category || "Flat"} />
+            <QuickFact icon={<Maximize size={20}/>} label="Landmark" value={property.landmark || "Nagpur City"} />
+            <QuickFact icon={<Layers size={20}/>} label="Furnishing" value="Semi-Furnished" />
+            <QuickFact icon={<Calendar size={20}/>} label="Available From" value="Immediately" />
+            <QuickFact icon={<User size={20}/>} label="Posted By" value="Owner" />
+            <QuickFact icon={<ShieldCheck size={20}/>} label="Security Deposit" value={`₹${Number(property.price) * 2}`} />
+          </div>
+        </div>
+
+        {/* --- DETAILED DESCRIPTION --- */}
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* --- LEFT: MAIN CONTENT (8 Cols) --- */}
-          <div className="lg:col-span-8 space-y-12">
-            
-            {/* Gallery Section - Open Layout */}
-            <div className="rounded-[2rem] overflow-hidden bg-slate-50 border border-slate-100 shadow-sm">
-              <img src={property.imageUrl} alt={property.title} className="w-full h-[450px] object-cover hover:scale-[1.01] transition-transform duration-500" />
-            </div>
-
-            {/* Header Info */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <span className="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100">
-                  {property.category || "Property"}
-                </span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">{property.title}</h2>
-              <div className="flex items-center gap-2 text-slate-500 font-semibold text-base">
-                <MapPin size={18} className="text-slate-400" /> {property.area} {property.landmark && <span className="text-slate-300">|</span>} {property.landmark}
-              </div>
-            </div>
-
-            <div className="h-[1px] bg-slate-100 w-full"></div>
-
-            {/* Description Section - High Readability */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-blue-600">
-                <Info size={18} />
-                <h3 className="font-black uppercase text-xs tracking-[0.2em]">Property Overview</h3>
-              </div>
-              <p className="text-slate-600 text-lg leading-relaxed max-w-3xl font-medium">
-                {property.description || "No description provided for this property."}
+          <div className="lg:col-span-2 space-y-8">
+            {/* About Section */}
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+              <h3 className="text-xl font-black mb-4 border-b pb-4 text-slate-900 uppercase tracking-tighter italic">About Property</h3>
+              <p className="text-slate-600 leading-relaxed font-medium text-lg">
+                {property.description || "Well maintained property in a prime location of Nagpur. Close to public transport and local markets."}
               </p>
             </div>
 
-            {/* Amenities Section - Grid Outline */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 text-blue-600">
-                <Wind size={18} />
-                <h3 className="font-black uppercase text-xs tracking-[0.2em]">Key Features</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {property.amenities ? property.amenities.split(',').map((a: string, i: number) => (
-                  <div key={i} className="flex items-center gap-3 p-5 border border-slate-100 rounded-2xl bg-white hover:border-blue-200 transition-colors">
-                    <div className="bg-blue-50 p-1.5 rounded-full"><Check size={14} className="text-blue-600" /></div>
-                    <span className="font-bold text-slate-700 text-sm tracking-tight">{a.trim()}</span>
-                  </div>
-                )) : (
-                  <p className="text-slate-400 text-sm italic">Standard features included</p>
-                )}
+            {/* Amenities Tag Cloud */}
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+              <h3 className="text-xl font-black mb-6 border-b pb-4 text-slate-900 uppercase tracking-tighter italic">Amenities & Features</h3>
+              <div className="flex flex-wrap gap-3">
+                {property.amenities?.split(',').map((item: string, i: number) => (
+                  <span key={i} className="bg-slate-50 border border-slate-200 text-slate-700 px-5 py-2.5 rounded-full font-bold text-sm hover:bg-blue-50 hover:border-blue-200 transition-all cursor-default flex items-center gap-2">
+                    <Check size={14} className="text-blue-600"/> {item.trim()}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* --- RIGHT: STICKY BOOKING (4 Cols) --- */}
-          <div className="lg:col-span-4 relative">
-            <div className="lg:sticky lg:top-32 bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/40 space-y-8">
-              <div className="space-y-1">
-                <p className="text-slate-400 font-black uppercase text-[10px] tracking-[0.2em]">Monthly Rent</p>
-                <h4 className="text-5xl font-black text-slate-900 tracking-tighter">₹{property.price}<span className="text-lg text-slate-300 font-normal">/mo</span></h4>
+          {/* --- CONTACT STICKY SIDEBAR --- */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24 bg-white p-8 rounded-3xl shadow-xl shadow-blue-100 border-2 border-blue-50 space-y-6">
+              <div className="flex items-center gap-4 border-b pb-6">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400"><User size={32}/></div>
+                <div>
+                  <h4 className="font-black text-lg">Property Owner</h4>
+                  <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">Verified Listing</p>
+                </div>
               </div>
 
               <div className="space-y-4">
-                <a href={`tel:${property.phone}`} className="flex items-center justify-center gap-3 w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-sm hover:bg-black transition-all active:scale-[0.98]">
-                  <Phone size={18} /> CALL OWNER
-                </a>
-                <a href={`https://wa.me/${property.phone}?text=${waMessage}`} target="_blank" className="flex items-center justify-center gap-3 w-full border-2 border-slate-900 text-slate-900 py-5 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all active:scale-[0.98]">
-                  <MessageCircle size={18} /> WHATSAPP INQUIRY
+                <button className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all active:scale-95">
+                  <Phone size={18}/> VIEW PHONE NUMBER
+                </button>
+                <a href={`https://wa.me/${property.phone}?text=${waMessage}`} target="_blank" className="w-full border-2 border-green-500 text-green-600 py-5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-green-50 transition-all active:scale-95">
+                  <MessageCircle size={18}/> CONTACT ON WHATSAPP
                 </a>
               </div>
-              
-              <div className="pt-6 border-t border-slate-50">
-                <p className="text-[10px] text-center text-slate-400 font-black uppercase tracking-widest italic">Listing ID: {displayId}</p>
-              </div>
+
+              <p className="text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest">REF ID: {id?.slice(-8).toUpperCase()}</p>
             </div>
           </div>
 
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* --- MOBILE FLOATING BAR (Clean Outline) --- */}
-      <div className="lg:hidden fixed bottom-8 left-6 right-6 z-[100] bg-slate-900 text-white p-2 rounded-[2rem] shadow-2xl flex items-center">
-        <a href={`tel:${property.phone}`} className="flex-1 flex items-center justify-center gap-2 py-4 font-black text-xs border-r border-white/10">
-          <Phone size={16} /> CALL
-        </a>
-        <a href={`https://wa.me/${property.phone}?text=${waMessage}`} target="_blank" className="flex-1 flex items-center justify-center gap-2 py-4 font-black text-xs">
-          <MessageCircle size={16} /> WHATSAPP
-        </a>
+// Reusable Fact Component
+function QuickFact({ icon, label, value }: any) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="text-blue-600 mt-1">{icon}</div>
+      <div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{label}</p>
+        <p className="text-sm font-bold text-slate-800">{value}</p>
       </div>
-
     </div>
   );
 }
