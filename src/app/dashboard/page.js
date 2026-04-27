@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase'; // Apna firebase path check kar lena
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
