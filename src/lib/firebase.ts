@@ -1,25 +1,44 @@
-// Pehle Firebase modules import karo (agar upar nahi hain toh)
+// Firebase modules import
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
-// Tumhara firebaseConfig yahan pehle se hoga...
+// Debug: Log the API key to check if environment variables are loading correctly
+// This will help us see if NEXT_PUBLIC_FIREBASE_API_KEY is being read properly
+console.log("=== Firebase Configuration Debug ===");
+console.log("NEXT_PUBLIC_FIREBASE_API_KEY:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? "Present (length: " + process.env.NEXT_PUBLIC_FIREBASE_API_KEY.length + ")" : "undefined");
+console.log("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:", process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN);
+console.log("NEXT_PUBLIC_FIREBASE_PROJECT_ID:", process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
+console.log("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:", process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
+console.log("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID:", process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID);
+console.log("NEXT_PUBLIC_FIREBASE_APP_ID:", process.env.NEXT_PUBLIC_FIREBASE_APP_ID);
+console.log("====================================");
+
+// Firebase configuration using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyB6NsMuu4tMwwvnuRg1Nj3YcM8q3DtE0_Q",
-  authDomain: "fixmystay-ngp.firebaseapp.com",
-  projectId: "fixmystay-ngp",
-  storageBucket: "fixmystay-ngp.firebasestorage.app",
-  messagingSenderId: "895631994164",
-  appId: "1:895631994164:web:25a153017d44f41f238961",
-  measurementId: "G-P23VC1HR48"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase (Ye wala part missing ho sakta hai)
+// Validate required configuration
+const requiredKeys = ['apiKey', 'authDomain', 'projectId'];
+const missingKeys = requiredKeys.filter(key => !firebaseConfig[key]);
+if (missingKeys.length > 0) {
+  console.error("ERROR: Missing required Firebase configuration keys:", missingKeys);
+  console.error("Please check your .env.local file and ensure all NEXT_PUBLIC_FIREBASE_* variables are set correctly.");
+}
+
+// Initialize Firebase
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-// SABSE ZAROORI: Inhe export karna taaki baaki files use kar saken
+// Export Firebase services
 export { app, db, auth, storage };
