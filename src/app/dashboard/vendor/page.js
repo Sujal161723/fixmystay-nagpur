@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, orderBy, doc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { 
   Building, Plus, List, Edit, Trash2, CheckCircle, XCircle, 
-  Clock, DollarSign, Users, AlertCircle, Upload, Image
+  Clock, DollarSign, Users, AlertCircle, Upload, Image,
+  Calendar, Phone, TrendingUp, BarChart3, FileText, Shield,
+  ChevronLeft, ChevronRight, Search, Filter, Download
 } from 'lucide-react';
 import PropertyForm from '@/components/ui/PropertyForm';
 
@@ -22,6 +24,8 @@ export default function VendorDashboard() {
     pendingProperties: 0,
     rejectedProperties: 0,
     totalInquiries: 0,
+    totalBookings: 0,
+    revenue: 0,
   });
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -50,8 +54,7 @@ export default function VendorDashboard() {
       // Fetch vendor's properties
       const propertiesQuery = query(
         collection(db, 'properties'),
-        where('createdBy', '==', user.uid),
-        orderBy('createdAt', 'desc')
+        where('createdBy', '==', user.uid)
       );
       const propertiesSnapshot = await getDocs(propertiesQuery);
       const propertiesData = propertiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -67,6 +70,10 @@ export default function VendorDashboard() {
         where('propertyOwnerId', '==', user.uid)
       );
       const inquiriesSnapshot = await getDocs(inquiriesQuery);
+      const inquiriesData = inquiriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Calculate revenue (mock calculation based on inquiries)
+      const estimatedRevenue = inquiriesData.length * 5000; // Mock revenue
 
       setProperties(propertiesData);
       setStats({
@@ -74,7 +81,9 @@ export default function VendorDashboard() {
         approvedProperties: approved,
         pendingProperties: pending,
         rejectedProperties: rejected,
-        totalInquiries: inquiriesSnapshot.size,
+        totalInquiries: inquiriesData.length,
+        totalBookings: Math.floor(inquiriesData.length * 0.6), // 60% conversion mock
+        revenue: estimatedRevenue,
       });
     } catch (error) {
       console.error('Error fetching vendor data:', error);
@@ -115,7 +124,7 @@ export default function VendorDashboard() {
     return (
       <div className="min-h-screen bg-accent/30 pt-24">
         <div className="container-custom">
-          <div className="max-w-md mx-auto glass-card p-8 text-center">
+          <div className="max-w-md mx-auto glass-card p-8 text-center rounded-3xl">
             <AlertCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-4">KYC Verification Required</h2>
             <p className="text-muted-foreground mb-6">
@@ -124,7 +133,7 @@ export default function VendorDashboard() {
             </p>
             <button
               onClick={() => router.push('/dashboard/vendor/kyc')}
-              className="btn-primary w-full py-3"
+              className="btn-primary w-full py-3 rounded-2xl"
             >
               Complete KYC Verification
             </button>
@@ -135,19 +144,21 @@ export default function VendorDashboard() {
   }
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: DollarSign },
-    { id: 'properties', label: 'My Properties', icon: Building, count: stats.totalProperties },
+    { id: 'overview', label: 'Overview', icon: BarChart3 },
+    { id: 'properties', label: 'Properties', icon: Building, count: stats.totalProperties },
+    { id: 'calendar', label: 'Calendar', icon: Calendar },
     { id: 'inquiries', label: 'Inquiries', icon: Users, count: stats.totalInquiries },
+    { id: 'kyc', label: 'KYC Vault', icon: Shield },
     { id: 'add', label: 'Add Property', icon: Plus },
   ];
 
   return (
-    <div className="min-h-screen bg-accent/30">
+    <div className="min-h-screen bg-accent/30 pb-20 md:pb-0">
       {/* Header */}
       <header className="bg-white border-b border-border sticky top-20 z-30">
         <div className="container-custom flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center">
               <Building className="w-5 h-5 text-green-600" />
             </div>
             <h1 className="text-lg font-black text-slate-800">VENDOR PORTAL</h1>
@@ -198,7 +209,7 @@ export default function VendorDashboard() {
           <div className="space-y-8">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="glass-card p-6">
+              <div className="glass-card p-6 rounded-3xl">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                     <Building className="w-6 h-6 text-blue-600" />
@@ -210,7 +221,7 @@ export default function VendorDashboard() {
                 </div>
               </div>
 
-              <div className="glass-card p-6">
+              <div className="glass-card p-6 rounded-3xl">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                     <CheckCircle className="w-6 h-6 text-green-600" />
@@ -222,19 +233,7 @@ export default function VendorDashboard() {
                 </div>
               </div>
 
-              <div className="glass-card p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-muted-foreground uppercase">Pending</p>
-                    <p className="text-2xl font-black text-slate-900">{stats.pendingProperties}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="glass-card p-6">
+              <div className="glass-card p-6 rounded-3xl">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
                     <Users className="w-6 h-6 text-purple-600" />
@@ -245,13 +244,56 @@ export default function VendorDashboard() {
                   </div>
                 </div>
               </div>
+
+              <div className="glass-card p-6 rounded-3xl">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase">Est. Revenue</p>
+                    <p className="text-2xl font-black text-slate-900">₹{stats.revenue.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Performance Chart */}
+            <div className="glass-card p-6 rounded-3xl">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  Performance Overview
+                </h3>
+                <select className="input-field w-40 text-sm py-2">
+                  <option>Last 7 days</option>
+                  <option>Last 30 days</option>
+                  <option>Last 90 days</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-accent/50 rounded-2xl">
+                  <p className="text-3xl font-black text-primary mb-1">{stats.totalBookings}</p>
+                  <p className="text-xs text-muted-foreground uppercase font-bold">Bookings</p>
+                </div>
+                <div className="text-center p-4 bg-accent/50 rounded-2xl">
+                  <p className="text-3xl font-black text-green-600 mb-1">{stats.totalInquiries}</p>
+                  <p className="text-xs text-muted-foreground uppercase font-bold">Inquiries</p>
+                </div>
+                <div className="text-center p-4 bg-accent/50 rounded-2xl">
+                  <p className="text-3xl font-black text-purple-600 mb-1">
+                    {stats.totalInquiries > 0 ? Math.round((stats.totalBookings / stats.totalInquiries) * 100) : 0}%
+                  </p>
+                  <p className="text-xs text-muted-foreground uppercase font-bold">Conversion</p>
+                </div>
+              </div>
             </div>
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <button
                 onClick={() => setActiveTab('add')}
-                className="glass-card p-6 hover:shadow-medium transition-all text-left group"
+                className="glass-card p-6 hover:shadow-medium transition-all text-left group rounded-3xl"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -267,17 +309,17 @@ export default function VendorDashboard() {
               </button>
 
               <button
-                onClick={() => setActiveTab('properties')}
-                className="glass-card p-6 hover:shadow-medium transition-all text-left group"
+                onClick={() => setActiveTab('calendar')}
+                className="glass-card p-6 hover:shadow-medium transition-all text-left group rounded-3xl"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                    <List className="w-6 h-6 text-blue-600" />
+                    <Calendar className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800">Manage Properties</h3>
+                    <h3 className="font-bold text-slate-800">Manage Availability</h3>
                     <p className="text-sm text-muted-foreground">
-                      View and edit your listed properties
+                      Update your booking calendar and availability
                     </p>
                   </div>
                 </div>
@@ -286,12 +328,20 @@ export default function VendorDashboard() {
 
             {/* Recent Properties */}
             {properties.length > 0 && (
-              <div className="glass-card p-6">
-                <h3 className="font-bold text-slate-800 mb-4">Recent Properties</h3>
+              <div className="glass-card p-6 rounded-3xl">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-bold text-slate-800">Recent Properties</h3>
+                  <button 
+                    onClick={() => setActiveTab('properties')}
+                    className="text-primary font-bold text-sm hover:underline flex items-center gap-1"
+                  >
+                    View All <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
                 <div className="space-y-4">
                   {properties.slice(0, 3).map((property) => (
-                    <div key={property.id} className="flex items-center gap-4 p-4 bg-accent/50 rounded-xl">
-                      <div className="w-16 h-16 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
+                    <div key={property.id} className="flex items-center gap-4 p-4 bg-accent/50 rounded-2xl">
+                      <div className="w-16 h-16 rounded-xl bg-gray-200 overflow-hidden flex-shrink-0">
                         {property.imageUrl ? (
                           <img src={property.imageUrl} alt={property.title} className="w-full h-full object-cover" />
                         ) : (
@@ -318,7 +368,7 @@ export default function VendorDashboard() {
 
         {/* Properties Tab */}
         {activeTab === 'properties' && (
-          <div className="glass-card overflow-hidden">
+          <div className="glass-card overflow-hidden rounded-3xl">
             <div className="p-6 border-b border-border flex justify-between items-center">
               <h2 className="font-bold text-slate-800">My Properties</h2>
               <button
@@ -339,7 +389,7 @@ export default function VendorDashboard() {
                 <p className="font-medium text-muted-foreground">No properties listed yet</p>
                 <button
                   onClick={() => setActiveTab('add')}
-                  className="mt-4 btn-primary py-2 px-4 text-sm"
+                  className="mt-4 btn-primary py-2 px-4 text-sm rounded-xl"
                 >
                   Add Your First Property
                 </button>
@@ -349,12 +399,12 @@ export default function VendorDashboard() {
                 <table className="w-full text-left">
                   <thead className="bg-accent text-xs font-black uppercase text-muted-foreground">
                     <tr>
-                      <th className="p-4">Property</th>
+                      <th className="p-4 rounded-tl-2xl">Property</th>
                       <th className="p-4">Type</th>
                       <th className="p-4">Location</th>
                       <th className="p-4">Price</th>
                       <th className="p-4">Status</th>
-                      <th className="p-4 text-right">Actions</th>
+                      <th className="p-4 text-right rounded-tr-2xl">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="text-sm divide-y divide-border">
@@ -406,9 +456,19 @@ export default function VendorDashboard() {
           </div>
         )}
 
+        {/* Calendar Tab */}
+        {activeTab === 'calendar' && (
+          <CalendarView properties={properties} />
+        )}
+
         {/* Inquiries Tab */}
         {activeTab === 'inquiries' && (
           <InquiriesTab vendorId={user?.uid} />
+        )}
+
+        {/* KYC Vault Tab */}
+        {activeTab === 'kyc' && (
+          <KYCVault userId={user?.uid} />
         )}
 
         {/* Add Property Tab */}
@@ -440,10 +500,131 @@ export default function VendorDashboard() {
   );
 }
 
-// Inquiries Tab Component
+// Calendar View Component
+function CalendarView({ properties }) {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [bookings, setBookings] = useState([]);
+  const [selectedProperty, setSelectedProperty] = useState('all');
+
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  const prevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const nextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  // Generate calendar days
+  const calendarDays = [];
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    calendarDays.push(null);
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    calendarDays.push(day);
+  }
+
+  // Mock bookings data
+  const mockBookings = [
+    { day: 5, property: 'Property A', type: 'booked' },
+    { day: 12, property: 'Property B', type: 'booked' },
+    { day: 15, property: 'Property A', type: 'inquiry' },
+    { day: 20, property: 'Property C', type: 'booked' },
+    { day: 25, property: 'Property A', type: 'blocked' },
+  ];
+
+  return (
+    <div className="glass-card p-6 rounded-3xl">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <div className="flex items-center gap-4">
+          <button onClick={prevMonth} className="p-2 hover:bg-accent rounded-xl transition-colors">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h2 className="text-xl font-bold text-slate-800">
+            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+          </h2>
+          <button onClick={nextMonth} className="p-2 hover:bg-accent rounded-xl transition-colors">
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <select 
+            value={selectedProperty}
+            onChange={(e) => setSelectedProperty(e.target.value)}
+            className="input-field w-48 py-2"
+          >
+            <option value="all">All Properties</option>
+            {properties.map(p => (
+              <option key={p.id} value={p.id}>{p.title}</option>
+            ))}
+          </select>
+          
+          <div className="flex gap-4 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span>Booked</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <span>Inquiry</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <span>Blocked</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-2">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          <div key={day} className="text-center font-bold text-sm text-muted-foreground py-2">
+            {day}
+          </div>
+        ))}
+        
+        {calendarDays.map((day, index) => {
+          if (!day) return <div key={index} className="aspect-square"></div>;
+          
+          const booking = mockBookings.find(b => b.day === day);
+          const isToday = day === new Date().getDate() && currentDate.getMonth() === new Date().getMonth();
+          
+          return (
+            <div 
+              key={index}
+              className={`aspect-square border rounded-xl p-2 flex flex-col ${
+                isToday ? 'border-primary bg-primary/5' : 'border-border'
+              } ${booking ? 'cursor-pointer hover:shadow-medium transition-shadow' : ''}`}
+            >
+              <span className={`text-sm font-bold ${isToday ? 'text-primary' : ''}`}>{day}</span>
+              {booking && (
+                <div className={`mt-auto text-xs px-2 py-1 rounded-full ${
+                  booking.type === 'booked' ? 'bg-green-100 text-green-700' :
+                  booking.type === 'inquiry' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  {booking.type}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Inquiries Tab Component with Call Buttons
 function InquiriesTab({ vendorId }) {
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     const fetchInquiries = async () => {
@@ -467,9 +648,11 @@ function InquiriesTab({ vendorId }) {
     fetchInquiries();
   }, [vendorId]);
 
+  const filteredInquiries = filter === 'all' ? inquiries : inquiries.filter(i => i.status === filter);
+
   if (loading) {
     return (
-      <div className="glass-card p-8 text-center">
+      <div className="glass-card p-8 text-center rounded-3xl">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
       </div>
     );
@@ -477,7 +660,7 @@ function InquiriesTab({ vendorId }) {
 
   if (inquiries.length === 0) {
     return (
-      <div className="glass-card p-8 text-center">
+      <div className="glass-card p-8 text-center rounded-3xl">
         <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
         <p className="font-medium text-muted-foreground">No inquiries yet</p>
       </div>
@@ -485,14 +668,24 @@ function InquiriesTab({ vendorId }) {
   }
 
   return (
-    <div className="glass-card overflow-hidden">
-      <div className="p-6 border-b border-border">
+    <div className="glass-card rounded-3xl overflow-hidden">
+      <div className="p-6 border-b border-border flex justify-between items-center">
         <h2 className="font-bold text-slate-800">Customer Inquiries</h2>
+        <select 
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="input-field w-40 py-2 text-sm"
+        >
+          <option value="all">All</option>
+          <option value="pending">Pending</option>
+          <option value="contacted">Contacted</option>
+          <option value="resolved">Resolved</option>
+        </select>
       </div>
       <div className="space-y-4 p-6">
-        {inquiries.map((inquiry) => (
-          <div key={inquiry.id} className="border border-border rounded-xl p-4 hover:shadow-medium transition-shadow">
-            <div className="flex justify-between items-start mb-2">
+        {filteredInquiries.map((inquiry) => (
+          <div key={inquiry.id} className="border border-border rounded-2xl p-4 hover:shadow-medium transition-shadow">
+            <div className="flex justify-between items-start mb-3">
               <div>
                 <p className="font-bold text-slate-800">{inquiry.userName}</p>
                 <p className="text-sm text-muted-foreground">{inquiry.userEmail}</p>
@@ -500,16 +693,156 @@ function InquiriesTab({ vendorId }) {
                   <p className="text-sm text-muted-foreground">{inquiry.userPhone}</p>
                 )}
               </div>
-              <span className="text-xs text-muted-foreground">
-                {new Date(inquiry.createdAt).toLocaleDateString()}
-              </span>
+              <div className="flex flex-col items-end gap-2">
+                <span className={`badge text-xs ${
+                  inquiry.status === 'pending' ? 'badge-warning' :
+                  inquiry.status === 'contacted' ? 'badge-primary' : 'badge-success'
+                }`}>
+                  {inquiry.status || 'pending'}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(inquiry.createdAt).toLocaleDateString()}
+                </span>
+              </div>
             </div>
-            <p className="text-sm text-slate-600 mb-2">{inquiry.message}</p>
-            <div className="flex gap-4 text-xs text-muted-foreground">
-              <span>Property: {inquiry.propertyTitle}</span>
+            <p className="text-sm text-slate-600 mb-3">{inquiry.message}</p>
+            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground mb-3">
+              <span className="bg-accent px-3 py-1 rounded-full">Property: {inquiry.propertyTitle}</span>
+              {inquiry.checkIn && (
+                <span className="bg-accent px-3 py-1 rounded-full">Check-in: {new Date(inquiry.checkIn).toLocaleDateString()}</span>
+              )}
+            </div>
+            <div className="flex gap-3">
+              {inquiry.userPhone && (
+                <a 
+                  href={`tel:${inquiry.userPhone}`}
+                  className="btn-primary py-2 px-4 text-sm flex items-center gap-2"
+                >
+                  <Phone className="w-4 h-4" />
+                  Call Now
+                </a>
+              )}
+              <a 
+                href={`mailto:${inquiry.userEmail}`}
+                className="btn-outline py-2 px-4 text-sm"
+              >
+                Send Email
+              </a>
+              <button className="btn-outline py-2 px-4 text-sm">
+                Mark Contacted
+              </button>
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// KYC Vault Component
+function KYCVault({ userId }) {
+  const [kycData, setKycData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchKYC = async () => {
+      if (!userId) return;
+      
+      try {
+        const userDoc = await getDocs(query(collection(db, 'users'), where('__name__', '==', userId)));
+        if (!userDoc.empty) {
+          const userData = userDoc.docs[0].data();
+          setKycData(userData.kycDetails || null);
+        }
+      } catch (error) {
+        console.error('Error fetching KYC:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchKYC();
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <div className="glass-card p-8 text-center rounded-3xl">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+      </div>
+    );
+  }
+
+  const kycDocuments = [
+    { name: 'Aadhaar Card', status: 'verified', verifiedAt: '2024-01-15' },
+    { name: 'PAN Card', status: 'verified', verifiedAt: '2024-01-15' },
+    { name: 'Business Proof', status: 'pending', verifiedAt: null },
+    { name: 'Property Documents', status: 'not_uploaded', verifiedAt: null },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* KYC Status Banner */}
+      <div className="glass-card p-6 rounded-3xl bg-green-50 border-green-200">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+            <CheckCircle className="w-6 h-6 text-green-600" />
+          </div>
+          <div>
+            <h3 className="font-bold text-green-800">KYC Verified</h3>
+            <p className="text-sm text-green-600">Your identity has been verified. You can list properties on the platform.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* KYC Documents */}
+      <div className="glass-card rounded-3xl overflow-hidden">
+        <div className="p-6 border-b border-border">
+          <h2 className="font-bold text-slate-800 flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
+            KYC Document Vault
+          </h2>
+        </div>
+        <div className="p-6">
+          <div className="grid md:grid-cols-2 gap-4">
+            {kycDocuments.map((doc, index) => (
+              <div key={index} className="border border-border rounded-2xl p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    doc.status === 'verified' ? 'bg-green-100' :
+                    doc.status === 'pending' ? 'bg-yellow-100' : 'bg-gray-100'
+                  }`}>
+                    <FileText className={`w-5 h-5 ${
+                      doc.status === 'verified' ? 'text-green-600' :
+                      doc.status === 'pending' ? 'text-yellow-600' : 'text-gray-600'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-800">{doc.name}</p>
+                    {doc.verifiedAt && (
+                      <p className="text-xs text-muted-foreground">Verified: {doc.verifiedAt}</p>
+                    )}
+                  </div>
+                </div>
+                <span className={`badge text-xs ${
+                  doc.status === 'verified' ? 'badge-success' :
+                  doc.status === 'pending' ? 'badge-warning' : ''
+                }`}>
+                  {doc.status === 'not_uploaded' ? 'Upload' : doc.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Upload New Document */}
+      <div className="glass-card p-6 rounded-3xl">
+        <h3 className="font-bold text-slate-800 mb-4">Upload Additional Documents</h3>
+        <div className="border-2 border-dashed border-border rounded-2xl p-8 text-center hover:border-primary transition-colors cursor-pointer">
+          <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+          <p className="font-medium text-slate-700 mb-1">Drop files here or click to upload</p>
+          <p className="text-sm text-muted-foreground">PDF, JPG, PNG up to 5MB</p>
+        </div>
       </div>
     </div>
   );
