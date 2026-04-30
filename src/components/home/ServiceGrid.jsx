@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Building, Home, Apartment, Pool, Heart, ChevronRight } from 'lucide-react';
+import { Building, Home, Building2, Waves, Heart, ChevronRight } from 'lucide-react';
 
 const services = [
   {
@@ -26,7 +26,7 @@ const services = [
     id: 'real-estate',
     label: 'Flats for Sale',
     count: '150+',
-    icon: Apartment,
+    icon: Building2,
     color: 'emerald',
     href: '/search?category=real-estate',
     description: 'Investment properties',
@@ -35,7 +35,7 @@ const services = [
     id: 'resort',
     label: 'Resorts',
     count: '80+',
-    icon: Pool,
+    icon: Waves,
     color: 'teal',
     href: '/search?category=resort',
     description: 'Weekend getaways',
