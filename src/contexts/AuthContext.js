@@ -8,39 +8,64 @@ import {
   onAuthStateChanged,
   updateProfile,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
 const AuthContext = createContext({});
 
+/**
+ * User Roles:
+ * - 'staff': Super Admin/Staff - Full access to manage users, listings, and bookings
+ * - 'vendor': Hotel/Property Owners - Can add and manage their properties (requires KYC)
+ * - 'user': Regular Users - Can browse, search, book, and send inquiries
+ */
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Sign up with email, password, and role
-  const signUp = useCallback(async (email, password, firstName, lastName, role) => {
+  const signUp = useCallback(async (email, password, firstName, lastName, role, phoneNumber = '') => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      const firebaseUser = userCredential.user;
 
       // Update user profile with display name
-      await updateProfile(user, {
+      await updateProfile(firebaseUser, {
         displayName: `${firstName} ${lastName}`,
       });
 
-      // Store additional user data in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        email: user.email,
+      // Prepare user data for Firestore
+      const userData = {
+        email: firebaseUser.email,
         firstName,
         lastName,
-        role, // 'admin', 'hotel_owner', 'user'
+        displayName: `${firstName} ${lastName}`,
+        role,
+        phoneNumber,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      });
+        isEmailVerified: firebaseUser.emailVerified,
+      };
 
-      return { success: true, user };
+      // For vendors, add KYC status
+      if (role === 'vendor') {
+        userData.kycStatus = 'pending';
+        userData.kycDetails = null;
+        userData.propertiesCount = 0;
+      }
+
+      // Store additional user data in Firestore
+      await setDoc(doc(db, 'users', firebaseUser.uid), userData);
+
+      // Send email verification
+      await sendEmailVerification(firebaseUser);
+
+      return { success: true, user: firebaseUser };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -62,6 +87,7 @@ export function AuthProvider({ children }) {
       await signOut(auth);
       setUser(null);
       setUserRole(null);
+      setUserProfile(null);
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
@@ -78,57 +104,109 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Fetch user role from Firestore
-  const fetchUserRole = useCallback(async (uid) => {
+  // Fetch user profile from Firestore
+  const fetchUserProfile = useCallback(async (uid) => {
     try {
       const docRef = doc(db, 'users', uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        return docSnap.data().role;
+        return docSnap.data();
       }
-      return 'user'; // Default role
+      return null;
     } catch (error) {
-      console.error('Error fetching user role:', error);
-      return 'user';
+      console.error('Error fetching user profile:', error);
+      return null;
     }
   }, []);
+
+  // Update user profile
+  const updateUserProfile = useCallback(async (uid, updates) => {
+    try {
+      const userRef = doc(db, 'users', uid);
+      await updateDoc(userRef, {
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }, []);
+
+  // Submit KYC details for vendors
+  const submitKYC = useCallback(async (uid, kycData) => {
+    try {
+      const userRef = doc(db, 'users', uid);
+      await updateDoc(userRef, {
+        kycStatus: 'pending',
+        kycDetails: kycData,
+        updatedAt: new Date().toISOString(),
+      });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }, []);
+
+  // Check if user has specific role
+  const hasRole = useCallback((requiredRole) => {
+    if (!userRole) return false;
+    if (userRole === 'staff') return true; // Staff has all access
+    return userRole === requiredRole;
+  }, [userRole]);
+
+  // Check if vendor is KYC verified
+  const isKYCVerified = useCallback(() => {
+    if (!userProfile) return false;
+    return userProfile.kycStatus === 'approved';
+  }, [userProfile]);
 
   // Listen to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
-        const role = await fetchUserRole(firebaseUser.uid);
-        setUserRole(role);
+        const profile = await fetchUserProfile(firebaseUser.uid);
+        if (profile) {
+          setUserRole(profile.role);
+          setUserProfile(profile);
+        }
       } else {
         setUser(null);
         setUserRole(null);
+        setUserProfile(null);
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [fetchUserRole]);
+  }, [fetchUserProfile]);
 
-  // Check if user has specific role
-  const hasRole = useCallback((requiredRole) => {
-    if (!userRole) return false;
-    if (userRole === 'admin') return true; // Admin has all access
-    return userRole === requiredRole;
-  }, [userRole]);
+  // Role check helpers
+  const isStaff = userRole === 'staff';
+  const isVendor = userRole === 'vendor';
+  const isUser = userRole === 'user';
 
   const value = {
     user,
     userRole,
+    userProfile,
     loading,
     signUp,
     signIn,
     logout,
     resetPassword,
     hasRole,
-    isAdmin: userRole === 'admin',
-    isHotelOwner: userRole === 'hotel_owner',
-    isUser: userRole === 'user',
+    isKYCVerified,
+    updateUserProfile,
+    submitKYC,
+    // Role flags
+    isStaff,
+    isVendor,
+    isUser,
+    // Legacy support
+    isAdmin: userRole === 'staff',
+    isHotelOwner: userRole === 'vendor',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

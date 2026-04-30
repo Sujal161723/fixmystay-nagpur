@@ -1,9 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #1d4ed8; /* Blue-700 jaisa color */
+  --color-primary: #1d4ed8;
+  --color-primary-light: #3b82f6;
+  --color-primary-dark: #1e40af;
   --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
   --color-accent: #f1f5f9;
+  --color-accent-hover: #e2e8f0;
+  --color-glass: rgba(255, 255, 255, 0.8);
+  --color-glass-border: rgba(255, 255, 255, 0.3);
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-muted: #64748b;
 }
 
 :root {
@@ -12,13 +22,22 @@
   --background-end-rgb: 248, 250, 252;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-start-rgb));
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+* {
+  box-sizing: border-box;
 }
 
-/* Tailwind v4 mein custom classes aise likhte hain */
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(180deg, 
+    rgb(var(--background-start-rgb)) 0%, 
+    rgb(var(--background-end-rgb)) 100%
+  );
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Container utility */
 @utility container-custom {
   max-width: 80rem; /* 7xl */
   margin-left: auto;
@@ -34,56 +53,237 @@ body {
   }
 }
 
+/* Primary button with soft outline */
 @utility btn-primary {
-  background-color: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: white;
-  padding: 0.625rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  transition: all;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem; /* rounded-xl */
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 3px rgba(29, 78, 216, 0.1);
   &:hover {
-    background-color: #1a44c2;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(29, 78, 216, 0.15);
   }
   &:active {
-    scale: 0.95;
+    transform: translateY(0);
+    scale: 0.98;
   }
 }
 
+/* Outline button with soft treatment */
 @utility btn-outline {
-  border: 1px solid var(--color-border);
-  background-color: transparent;
-  padding: 0.625rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  transition: all;
+  border: 1.5px solid var(--color-border);
+  background-color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem; /* rounded-xl */
+  font-weight: 600;
+  transition: all 0.2s ease;
+  color: var(--color-muted);
   &:hover {
     background-color: var(--color-accent);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
   }
   &:active {
-    scale: 0.95;
+    scale: 0.98;
   }
 }
 
+/* Input field with soft outline */
 @utility input-field {
   width: 100%;
-  padding: 0.625rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--color-border);
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem; /* rounded-xl */
+  border: 1.5px solid var(--color-border);
+  background-color: white;
   outline: none;
-  transition: all;
+  transition: all 0.2s ease;
+  font-size: 0.9375rem;
   &:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.1);
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.08);
+  }
+  &::placeholder {
+    color: #94a3b8;
   }
 }
 
+/* Card with soft outline and subtle shadow */
 @utility card {
   background-color: white;
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
+  border-radius: 1rem; /* rounded-2xl */
   overflow: hidden;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   &:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border-color: var(--color-primary-light);
   }
+}
+
+/* Glass card effect */
+@utility glass-card {
+  background: var(--color-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Badge styles */
+@utility badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+@utility badge-primary {
+  background-color: rgba(29, 78, 216, 0.1);
+  color: var(--color-primary);
+}
+
+@utility badge-success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+}
+
+@utility badge-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning);
+}
+
+@utility badge-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+}
+
+/* Soft shadow utility */
+@utility shadow-soft {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+@utility shadow-medium {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+@utility shadow-strong {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient text */
+@utility text-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animation utilities */
+@utility fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@utility slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection styling */
+::selection {
+  background-color: rgba(29, 78, 216, 0.2);
+  color: var(--color-primary-dark);
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Hide scrollbar but allow scrolling */
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-accent);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+  &:hover {
+    background: var(--color-muted);
+  }
+}
+
+/* Mobile bottom navigation */
+@utility mobile-nav {
+  @media (max-width: 767px) {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid var(--color-border);
+    padding: 0.5rem 0;
+    z-index: 40;
+  }
+}
+
+/* Safe area for mobile */
+@utility safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }

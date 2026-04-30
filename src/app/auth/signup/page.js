@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Eye, EyeOff, Mail, Lock, User, Building, Shield } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Building, Phone } from 'lucide-react';
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -14,6 +14,7 @@ export default function Signup() {
     password: '',
     confirmPassword: '',
     role: 'user',
+    phoneNumber: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -22,10 +23,10 @@ export default function Signup() {
   const { signUp } = useAuth();
   const router = useRouter();
 
+  // Updated roles - removed admin (staff only by invitation)
   const roles = [
-    { id: 'user', label: 'Guest', icon: User, description: 'Book stays and explore properties' },
-    { id: 'hotel_owner', label: 'Hotel Owner', icon: Building, description: 'List and manage your properties' },
-    { id: 'admin', label: 'Admin', icon: Shield, description: 'Manage the platform' },
+    { id: 'user', label: 'Guest', icon: User, description: 'Book stays & explore' },
+    { id: 'vendor', label: 'Vendor', icon: Building, description: 'List your property' },
   ];
 
   const handleChange = (e) => {
@@ -48,6 +49,12 @@ export default function Signup() {
       return;
     }
 
+    // Phone number validation for vendors
+    if (formData.role === 'vendor' && !formData.phoneNumber) {
+      setError('Phone number is required for vendors');
+      return;
+    }
+
     setLoading(true);
 
     const result = await signUp(
@@ -55,13 +62,19 @@ export default function Signup() {
       formData.password,
       formData.firstName,
       formData.lastName,
-      formData.role
+      formData.role,
+      formData.phoneNumber
     );
 
     setLoading(false);
 
     if (result.success) {
-      router.push('/');
+      // If vendor, redirect to KYC setup
+      if (formData.role === 'vendor') {
+        router.push('/dashboard/vendor/kyc');
+      } else {
+        router.push('/');
+      }
     } else {
       setError(result.error || 'Failed to create account');
     }
@@ -134,6 +147,27 @@ export default function Signup() {
             </div>
           </div>
 
+          {/* Phone Number (for vendors) */}
+          {formData.role === 'vendor' && (
+            <div>
+              <label className="block text-xs font-black uppercase text-muted-foreground mb-2">
+                Phone Number
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  placeholder="+91 98765 43210"
+                  className="input-field pl-10"
+                  required
+                />
+              </div>
+            </div>
+          )}
+
           {/* Password */}
           <div>
             <label className="block text-xs font-black uppercase text-muted-foreground mb-2">
@@ -192,13 +226,13 @@ export default function Signup() {
             <label className="block text-xs font-black uppercase text-muted-foreground mb-3">
               Select Account Type
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {roles.map((role) => {
                 const Icon = role.icon;
                 return (
                   <label
                     key={role.id}
-                    className={`relative flex flex-col items-center p-3 border rounded-xl cursor-pointer transition-all ${
+                    className={`relative flex flex-col items-center p-4 border rounded-xl cursor-pointer transition-all ${
                       formData.role === role.id
                         ? 'border-primary bg-primary/5'
                         : 'border-border hover:border-primary/50'
@@ -224,7 +258,7 @@ export default function Signup() {
                     >
                       {role.label}
                     </span>
-                    <span className="text-[10px] text-muted-foreground text-center mt-1 hidden lg:block">
+                    <span className="text-[10px] text-muted-foreground text-center mt-1">
                       {role.description}
                     </span>
                   </label>
@@ -250,6 +284,15 @@ export default function Signup() {
             </Link>
           </p>
         </div>
+
+        {/* Vendor info */}
+        {formData.role === 'vendor' && (
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+            <p className="text-xs text-blue-800 font-medium">
+              <strong>Note for Vendors:</strong> After signup, you'll need to complete KYC verification (Aadhaar/PAN) before listing properties.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
