@@ -155,7 +155,7 @@ export default function VendorDashboard() {
   return (
     <div className="min-h-screen bg-accent/30 pb-20 md:pb-0">
       {/* Header */}
-      <header className="bg-white border-b border-border sticky top-20 z-30">
+      <header className="bg-white border-b border-gray-200 sticky top-20 z-30">
         <div className="container-custom flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center">
@@ -369,7 +369,7 @@ export default function VendorDashboard() {
         {/* Properties Tab */}
         {activeTab === 'properties' && (
           <div className="glass-card overflow-hidden rounded-3xl">
-            <div className="p-6 border-b border-border flex justify-between items-center">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
               <h2 className="font-bold text-slate-800">My Properties</h2>
               <button
                 onClick={() => setActiveTab('add')}
@@ -599,7 +599,7 @@ function CalendarView({ properties }) {
             <div 
               key={index}
               className={`aspect-square border rounded-xl p-2 flex flex-col ${
-                isToday ? 'border-primary bg-primary/5' : 'border-border'
+                isToday ? 'border-primary bg-primary/5' : 'border-gray-200'
               } ${booking ? 'cursor-pointer hover:shadow-medium transition-shadow' : ''}`}
             >
               <span className={`text-sm font-bold ${isToday ? 'text-primary' : ''}`}>{day}</span>
@@ -669,7 +669,7 @@ function InquiriesTab({ vendorId }) {
 
   return (
     <div className="glass-card rounded-3xl overflow-hidden">
-      <div className="p-6 border-b border-border flex justify-between items-center">
+      <div className="p-6 border-b border-gray-200 flex justify-between items-center">
         <h2 className="font-bold text-slate-800">Customer Inquiries</h2>
         <select 
           value={filter}
@@ -684,7 +684,7 @@ function InquiriesTab({ vendorId }) {
       </div>
       <div className="space-y-4 p-6">
         {filteredInquiries.map((inquiry) => (
-          <div key={inquiry.id} className="border border-border rounded-2xl p-4 hover:shadow-medium transition-shadow">
+          <div key={inquiry.id} className="border border-gray-200 rounded-2xl p-4 hover:shadow-medium transition-shadow">
             <div className="flex justify-between items-start mb-3">
               <div>
                 <p className="font-bold text-slate-800">{inquiry.userName}</p>
@@ -796,7 +796,7 @@ function KYCVault({ userId }) {
 
       {/* KYC Documents */}
       <div className="glass-card rounded-3xl overflow-hidden">
-        <div className="p-6 border-b border-border">
+        <div className="p-6 border-b border-gray-200">
           <h2 className="font-bold text-slate-800 flex items-center gap-2">
             <Shield className="w-5 h-5 text-primary" />
             KYC Document Vault
@@ -805,7 +805,7 @@ function KYCVault({ userId }) {
         <div className="p-6">
           <div className="grid md:grid-cols-2 gap-4">
             {kycDocuments.map((doc, index) => (
-              <div key={index} className="border border-border rounded-2xl p-4 flex items-center justify-between">
+              <div key={index} className="border border-gray-200 rounded-2xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                     doc.status === 'verified' ? 'bg-green-100' :
@@ -838,7 +838,7 @@ function KYCVault({ userId }) {
       {/* Upload New Document */}
       <div className="glass-card p-6 rounded-3xl">
         <h3 className="font-bold text-slate-800 mb-4">Upload Additional Documents</h3>
-        <div className="border-2 border-dashed border-border rounded-2xl p-8 text-center hover:border-primary transition-colors cursor-pointer">
+        <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:border-primary transition-colors cursor-pointer">
           <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
           <p className="font-medium text-slate-700 mb-1">Drop files here or click to upload</p>
           <p className="text-sm text-muted-foreground">PDF, JPG, PNG up to 5MB</p>

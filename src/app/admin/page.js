@@ -81,7 +81,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Top Navigation Bar */}
-      <header className="bg-white border-b border-border sticky top-0 z-40">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="container-custom flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <Building2 className="w-6 h-6 text-primary" />
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
                 ? [1, 2, 3, 4].map((i) => (
                     <div
                       key={i}
-                      className="bg-white border border-border p-6 rounded-2xl shadow-sm animate-pulse"
+                      className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm animate-pulse"
                     >
                       <div className="h-4 bg-slate-200 rounded w-1/2 mb-2"></div>
                       <div className="h-8 bg-slate-200 rounded w-3/4"></div>
@@ -156,7 +156,7 @@ export default function AdminDashboard() {
                   ))
                 : (
                     <>
-                      <div className="bg-white border border-border p-6 rounded-2xl shadow-sm">
+                      <div className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
                         <p className="text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">
                           Total Listings
                         </p>
@@ -164,7 +164,7 @@ export default function AdminDashboard() {
                           {stats.totalListings?.toLocaleString() || '0'}
                         </p>
                       </div>
-                      <div className="bg-white border border-border p-6 rounded-2xl shadow-sm">
+                      <div className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
                         <p className="text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">
                           Approved
                         </p>
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                           {stats.approvedListings?.toLocaleString() || '0'}
                         </p>
                       </div>
-                      <div className="bg-white border border-border p-6 rounded-2xl shadow-sm">
+                      <div className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
                         <p className="text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">
                           Pending
                         </p>
@@ -180,7 +180,7 @@ export default function AdminDashboard() {
                           {stats.pendingApprovals?.toLocaleString() || '0'}
                         </p>
                       </div>
-                      <div className="bg-white border border-border p-6 rounded-2xl shadow-sm">
+                      <div className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
                         <p className="text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">
                           Rejected
                         </p>
@@ -196,7 +196,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <button
                 onClick={() => setActiveTab('add')}
-                className="bg-white border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all text-left group"
+                className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all text-left group"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -213,7 +213,7 @@ export default function AdminDashboard() {
 
               <button
                 onClick={() => setActiveTab('pending')}
-                className="bg-white border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all text-left group"
+                className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all text-left group"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center group-hover:bg-orange-200 transition-colors">
@@ -233,8 +233,8 @@ export default function AdminDashboard() {
 
         {/* Pending Approvals Tab */}
         {activeTab === 'pending' && (
-          <div className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm">
-            <div className="p-6 border-b border-border flex justify-between items-center">
+          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
               <h2 className="font-bold text-slate-800">Pending Property Approvals</h2>
               <span className="text-sm text-muted-foreground">
                 {pendingProperties.length} properties

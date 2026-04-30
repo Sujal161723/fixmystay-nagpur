@@ -43,7 +43,7 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-20 bg-glass backdrop-blur-md border-b border-border z-50">
+    <header className="fixed top-0 left-0 right-0 h-20 bg-glass backdrop-blur-md border-b border-gray-200 z-50">
       <div className="container-custom h-full flex items-center justify-between">
         {/* Logo */}
         <Link
@@ -101,8 +101,8 @@ export default function Navbar() {
                     className="fixed inset-0 z-40"
                     onClick={() => setShowDropdown(false)}
                   />
-                  <div className="absolute right-0 top-14 w-56 bg-white border border-border rounded-xl shadow-lg z-50 overflow-hidden">
-                    <div className="p-4 border-b border-border">
+                  <div className="absolute right-0 top-14 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                    <div className="p-4 border-b border-gray-200">
                       <p className="text-sm font-bold text-gray-800">
                         {user.displayName || user.email}
                       </p>
@@ -151,7 +151,7 @@ export default function Navbar() {
                       </Link>
                     </div>
 
-                    <div className="border-t border-border p-2">
+                    <div className="border-t border-gray-200 p-2">
                       <button
                         onClick={handleLogout}
                         className="flex items-center gap-3 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -185,7 +185,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {showMobileMenu && (
-        <div className="md:hidden absolute top-20 left-0 right-0 bg-white border-b border-border shadow-lg z-40">
+        <div className="md:hidden absolute top-20 left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-40">
           <nav className="container-custom py-4 space-y-4">
             {navLinks.map((link) => (
               <Link
@@ -197,7 +197,7 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-4 border-t border-border space-y-2">
+            <div className="pt-4 border-t border-gray-200 space-y-2">
               {user ? (
                 <>
                   <Link

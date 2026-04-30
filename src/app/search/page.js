@@ -75,7 +75,7 @@ function SearchContent() {
           </div>
 
           {/* Map Sidebar Placeholder */}
-          <div className="hidden lg:block w-[400px] bg-muted rounded-2xl sticky top-40 h-[calc(100vh-200px)] overflow-hidden border border-border">
+          <div className="hidden lg:block w-[400px] bg-muted rounded-2xl sticky top-40 h-[calc(100vh-200px)] overflow-hidden border border-gray-200">
             <div className="w-full h-full bg-slate-200 flex items-center justify-center">
               <span className="text-muted-foreground font-bold tracking-widest uppercase">Map View Interface</span>
             </div>

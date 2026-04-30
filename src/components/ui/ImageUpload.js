@@ -110,7 +110,7 @@ export default function ImageUpload({
           className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
             uploading
               ? 'border-primary/50 bg-primary/5'
-              : 'border-border hover:border-primary hover:bg-accent/50'
+              : 'border-gray-200 hover:border-primary hover:bg-accent/50'
           }`}
         >
           <input
@@ -155,7 +155,7 @@ export default function ImageUpload({
           {currentImages.map((image, index) => (
             <div
               key={index}
-              className="relative group aspect-square rounded-xl overflow-hidden border border-border"
+              className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200"
             >
               <img
                 src={image.url}

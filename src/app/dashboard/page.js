@@ -143,7 +143,7 @@ export default function UserDashboard() {
                   className={`flex items-center gap-2 px-4 py-3 text-sm font-bold uppercase tracking-wider rounded-xl transition-colors whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'bg-primary text-white'
-                      : 'bg-white border border-border text-muted-foreground hover:bg-accent'
+                      : 'bg-white border border-gray-200 text-muted-foreground hover:bg-accent'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -408,7 +408,7 @@ function ProfileTab({ user, userRole }) {
           />
         </div>
 
-        <div className="pt-4 border-t border-border">
+        <div className="pt-4 border-t border-gray-200">
           <button className="btn-primary py-2 px-4">
             Edit Profile
           </button>

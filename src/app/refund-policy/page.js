@@ -41,7 +41,7 @@ export default function RefundPolicyPage() {
                     For daily bookings (hotels, resorts, villas), the following cancellation policy applies:
                   </p>
                   <div className="space-y-4">
-                    <div className="bg-white rounded-lg p-4 border border-border">
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-bold text-slate-800">Free Cancellation</span>
                         <span className="badge badge-success text-xs">Full Refund</span>
@@ -50,7 +50,7 @@ export default function RefundPolicyPage() {
                         Cancel up to 24 hours before check-in for a full refund
                       </p>
                     </div>
-                    <div className="bg-white rounded-lg p-4 border border-border">
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-bold text-slate-800">Partial Refund</span>
                         <span className="badge badge-warning text-xs">50% Refund</span>
@@ -59,7 +59,7 @@ export default function RefundPolicyPage() {
                         Cancel between 12-24 hours before check-in for 50% refund
                       </p>
                     </div>
-                    <div className="bg-white rounded-lg p-4 border border-border">
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-bold text-slate-800">No Refund</span>
                         <span className="badge badge-error text-xs">0% Refund</span>
@@ -154,21 +154,21 @@ export default function RefundPolicyPage() {
                 <div className="bg-accent rounded-xl p-6 mb-8">
                   <table className="w-full text-left">
                     <thead>
-                      <tr className="border-b border-border">
+                      <tr className="border-b border-gray-200">
                         <th className="py-3 font-bold text-slate-800">Payment Method</th>
                         <th className="py-3 font-bold text-slate-800">Refund Time</th>
                       </tr>
                     </thead>
                     <tbody className="text-sm text-slate-600">
-                      <tr className="border-b border-border">
+                      <tr className="border-b border-gray-200">
                         <td className="py-3">Credit/Debit Card</td>
                         <td className="py-3">5-7 business days</td>
                       </tr>
-                      <tr className="border-b border-border">
+                      <tr className="border-b border-gray-200">
                         <td className="py-3">UPI</td>
                         <td className="py-3">3-5 business days</td>
                       </tr>
-                      <tr className="border-b border-border">
+                      <tr className="border-b border-gray-200">
                         <td className="py-3">Net Banking</td>
                         <td className="py-3">5-7 business days</td>
                       </tr>

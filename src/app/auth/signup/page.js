@@ -82,7 +82,7 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-accent/30 p-4 py-12">
-      <div className="w-full max-w-lg bg-white border border-border rounded-2xl shadow-xl p-8">
+      <div className="w-full max-w-lg bg-white border border-gray-200 rounded-2xl shadow-xl p-8">
         <div className="mb-8 text-center">
           <Link href="/" className="text-2xl font-black text-primary mb-2 block">FIXMYSTAY</Link>
           <h1 className="text-xl font-bold italic">Create your account</h1>
@@ -235,7 +235,7 @@ export default function Signup() {
                     className={`relative flex flex-col items-center p-4 border rounded-xl cursor-pointer transition-all ${
                       formData.role === role.id
                         ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
+                        : 'border-gray-200 hover:border-primary/50'
                     }`}
                   >
                     <input
@@ -276,7 +276,7 @@ export default function Signup() {
           </button>
         </form>
 
-        <div className="mt-8 text-center border-t border-border pt-8">
+        <div className="mt-8 text-center border-t border-gray-200 pt-8">
           <p className="text-sm text-muted-foreground font-medium italic">
             Already have an account?{' '}
             <Link href="/auth/login" className="text-primary font-bold ml-1 hover:underline">

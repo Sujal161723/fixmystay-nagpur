@@ -41,7 +41,7 @@ export default function PartnerPage() {
         </section>
 
         {/* Stats */}
-        <section className="py-16 border-y border-border">
+        <section className="py-16 border-y border-gray-200">
           <div className="container-custom">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               <div className="text-center">

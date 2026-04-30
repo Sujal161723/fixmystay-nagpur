@@ -147,7 +147,7 @@ export default function StaffDashboard() {
   return (
     <div className="min-h-screen bg-accent/30">
       {/* Header */}
-      <header className="bg-white border-b border-border sticky top-20 z-30">
+      <header className="bg-white border-b border-gray-200 sticky top-20 z-30">
         <div className="container-custom flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -292,7 +292,7 @@ export default function StaffDashboard() {
         {/* Properties Tab */}
         {activeTab === 'properties' && (
           <div className="glass-card overflow-hidden">
-            <div className="p-6 border-b border-border">
+            <div className="p-6 border-b border-gray-200">
               <h2 className="font-bold text-slate-800">Pending Property Approvals</h2>
             </div>
             {loading ? (
@@ -351,7 +351,7 @@ export default function StaffDashboard() {
         {/* Inquiries Tab */}
         {activeTab === 'inquiries' && (
           <div className="glass-card overflow-hidden">
-            <div className="p-6 border-b border-border">
+            <div className="p-6 border-b border-gray-200">
               <h2 className="font-bold text-slate-800">Pending Inquiries</h2>
             </div>
             {loading ? (
@@ -366,7 +366,7 @@ export default function StaffDashboard() {
             ) : (
               <div className="space-y-4 p-6">
                 {pendingInquiries.map((inquiry) => (
-                  <div key={inquiry.id} className="border border-border rounded-xl p-4 hover:shadow-medium transition-shadow">
+                  <div key={inquiry.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-medium transition-shadow">
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <p className="font-bold text-slate-800">{inquiry.userName}</p>
@@ -389,7 +389,7 @@ export default function StaffDashboard() {
         {/* Vendors Tab */}
         {activeTab === 'vendors' && (
           <div className="glass-card overflow-hidden">
-            <div className="p-6 border-b border-border">
+            <div className="p-6 border-b border-gray-200">
               <h2 className="font-bold text-slate-800">Vendor KYC Verification</h2>
             </div>
             {loading ? (
@@ -404,7 +404,7 @@ export default function StaffDashboard() {
             ) : (
               <div className="space-y-4 p-6">
                 {vendors.map((vendor) => (
-                  <div key={vendor.id} className="border border-border rounded-xl p-4">
+                  <div key={vendor.id} className="border border-gray-200 rounded-xl p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <p className="font-bold text-slate-800">{vendor.displayName}</p>

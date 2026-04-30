@@ -38,7 +38,7 @@ export default function PropertyFilters({
   const hasActiveFilters = Object.keys(activeFilters).length > 0;
 
   return (
-    <div className="border-b border-border bg-white sticky top-20 z-40">
+    <div className="border-b border-gray-200 bg-white sticky top-20 z-40">
       <div className="container-custom py-4">
         {/* Filter Buttons Row */}
         <div className="flex items-center gap-4 overflow-x-auto no-scrollbar">
@@ -48,7 +48,7 @@ export default function PropertyFilters({
               Price Range
             </button>
             {/* Dropdown */}
-            <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-border rounded-xl shadow-lg p-4 hidden group-hover:block z-50">
+            <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg p-4 hidden group-hover:block z-50">
               <div className="space-y-2">
                 <button 
                   onClick={() => handlePriceRangeChange(null)}
@@ -87,7 +87,7 @@ export default function PropertyFilters({
           {/* Property Type Filter */}
           <button 
             onClick={() => handleFilterClick('category', 'hotel')}
-            className={`px-4 py-2 border border-border text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 border border-gray-200 text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
               activeFilters.category === 'hotel' 
                 ? 'bg-primary text-white border-primary' 
                 : 'hover:bg-accent'
@@ -98,7 +98,7 @@ export default function PropertyFilters({
 
           <button 
             onClick={() => handleFilterClick('category', 'pg')}
-            className={`px-4 py-2 border border-border text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 border border-gray-200 text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
               activeFilters.category === 'pg' 
                 ? 'bg-primary text-white border-primary' 
                 : 'hover:bg-accent'
@@ -109,7 +109,7 @@ export default function PropertyFilters({
 
           <button 
             onClick={() => handleFilterClick('category', 'room')}
-            className={`px-4 py-2 border border-border text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 border border-gray-200 text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
               activeFilters.category === 'room' 
                 ? 'bg-primary text-white border-primary' 
                 : 'hover:bg-accent'
@@ -120,7 +120,7 @@ export default function PropertyFilters({
 
           <button 
             onClick={() => handleFilterClick('category', 'real-estate')}
-            className={`px-4 py-2 border border-border text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 border border-gray-200 text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
               activeFilters.category === 'real-estate' 
                 ? 'bg-primary text-white border-primary' 
                 : 'hover:bg-accent'
@@ -131,11 +131,11 @@ export default function PropertyFilters({
 
           {/* Area/Location Filter */}
           <div className="relative group">
-            <button className="px-4 py-2 border border-border text-sm font-medium rounded-full whitespace-nowrap hover:bg-accent transition-colors">
+            <button className="px-4 py-2 border border-gray-200 text-sm font-medium rounded-full whitespace-nowrap hover:bg-accent transition-colors">
               Nagpur Areas
             </button>
             {/* Dropdown */}
-            <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-border rounded-xl shadow-lg p-4 hidden group-hover:block z-50 max-h-64 overflow-y-auto">
+            <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg p-4 hidden group-hover:block z-50 max-h-64 overflow-y-auto">
               <div className="space-y-2">
                 {NAGPUR_AREAS.map((area) => (
                   <button
@@ -156,17 +156,17 @@ export default function PropertyFilters({
 
           {/* Amenities Filter */}
           <div className="relative group">
-            <button className="px-4 py-2 border border-border text-sm font-medium rounded-full whitespace-nowrap hover:bg-accent transition-colors">
+            <button className="px-4 py-2 border border-gray-200 text-sm font-medium rounded-full whitespace-nowrap hover:bg-accent transition-colors">
               Amenities
             </button>
             {/* Dropdown */}
-            <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-border rounded-xl shadow-lg p-4 hidden group-hover:block z-50 max-h-64 overflow-y-auto">
+            <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg p-4 hidden group-hover:block z-50 max-h-64 overflow-y-auto">
               <div className="space-y-2">
                 {COMMON_AMENITIES.map((amenity) => (
                   <label key={amenity} className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="rounded border-border"
+                      className="rounded border-gray-200"
                       onChange={(e) => {
                         const currentAmenities = activeFilters.amenities || [];
                         if (e.target.checked) {
@@ -192,7 +192,7 @@ export default function PropertyFilters({
           {/* Verified Only Filter */}
           <button 
             onClick={() => handleFilterClick('verified', true)}
-            className={`px-4 py-2 border border-border text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 border border-gray-200 text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
               activeFilters.verified 
                 ? 'bg-primary text-white border-primary' 
                 : 'hover:bg-accent'

@@ -50,7 +50,7 @@ export default function AboutPage() {
                 <div className="aspect-square bg-gradient-to-br from-primary/20 to-accent rounded-3xl flex items-center justify-center">
                   <MapPin className="w-32 h-32 text-primary opacity-50" />
                 </div>
-                <div className="absolute -bottom-6 -left-6 bg-white border border-border rounded-2xl p-6 shadow-lg">
+                <div className="absolute -bottom-6 -left-6 bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
                   <p className="text-4xl font-black text-primary mb-1">2024</p>
                   <p className="text-sm text-muted-foreground">Founded in Nagpur</p>
                 </div>

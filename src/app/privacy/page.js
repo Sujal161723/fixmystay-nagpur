@@ -104,19 +104,19 @@ export default function PrivacyPage() {
                   4. Your Rights
                 </h2>
                 <div className="grid md:grid-cols-2 gap-4 mb-8">
-                  <div className="border border-border rounded-xl p-4">
+                  <div className="border border-gray-200 rounded-xl p-4">
                     <h3 className="font-bold text-slate-800 mb-2">Access</h3>
                     <p className="text-sm text-slate-600">Request a copy of your personal data</p>
                   </div>
-                  <div className="border border-border rounded-xl p-4">
+                  <div className="border border-gray-200 rounded-xl p-4">
                     <h3 className="font-bold text-slate-800 mb-2">Correction</h3>
                     <p className="text-sm text-slate-600">Update or correct inaccurate data</p>
                   </div>
-                  <div className="border border-border rounded-xl p-4">
+                  <div className="border border-gray-200 rounded-xl p-4">
                     <h3 className="font-bold text-slate-800 mb-2">Deletion</h3>
                     <p className="text-sm text-slate-600">Request deletion of your data</p>
                   </div>
-                  <div className="border border-border rounded-xl p-4">
+                  <div className="border border-gray-200 rounded-xl p-4">
                     <h3 className="font-bold text-slate-800 mb-2">Opt-out</h3>
                     <p className="text-sm text-slate-600">Unsubscribe from marketing communications</p>
                   </div>

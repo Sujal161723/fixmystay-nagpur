@@ -175,7 +175,7 @@ export default function PropertyForm() {
       )}
 
       {/* Basic Information */}
-      <div className="bg-white border border-border rounded-2xl p-6 space-y-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
         <h3 className="text-lg font-bold text-slate-800">Basic Information</h3>
 
         <div>
@@ -265,7 +265,7 @@ export default function PropertyForm() {
       </div>
 
       {/* Location */}
-      <div className="bg-white border border-border rounded-2xl p-6 space-y-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
         <h3 className="text-lg font-bold text-slate-800">Location</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -327,7 +327,7 @@ export default function PropertyForm() {
       </div>
 
       {/* Images */}
-      <div className="bg-white border border-border rounded-2xl p-6 space-y-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
         <h3 className="text-lg font-bold text-slate-800">Property Images</h3>
         <ImageUpload
           value={formData.images}
@@ -338,7 +338,7 @@ export default function PropertyForm() {
       </div>
 
       {/* Amenities */}
-      <div className="bg-white border border-border rounded-2xl p-6 space-y-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
         <h3 className="text-lg font-bold text-slate-800">Amenities</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {amenityOptions.map((amenity) => (
@@ -347,7 +347,7 @@ export default function PropertyForm() {
               className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${
                 formData.amenities.includes(amenity.id)
                   ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50'
+                  : 'border-gray-200 hover:border-primary/50'
               }`}
             >
               <input
@@ -360,7 +360,7 @@ export default function PropertyForm() {
                 className={`w-5 h-5 rounded flex items-center justify-center border ${
                   formData.amenities.includes(amenity.id)
                     ? 'bg-primary border-primary'
-                    : 'border-border'
+                    : 'border-gray-200'
                 }`}
               >
                 {formData.amenities.includes(amenity.id) && (
@@ -382,7 +382,7 @@ export default function PropertyForm() {
       </div>
 
       {/* Contact Information */}
-      <div className="bg-white border border-border rounded-2xl p-6 space-y-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
         <h3 className="text-lg font-bold text-slate-800">Contact Information</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

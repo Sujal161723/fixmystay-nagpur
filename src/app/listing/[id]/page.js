@@ -145,7 +145,7 @@ export default function DetailPage() {
           {/* Content */}
           <div className="lg:col-span-2">
             {/* Description */}
-            <div className="border-b border-border pb-8 mb-8">
+            <div className="border-b border-gray-200 pb-8 mb-8">
               <h2 className="text-2xl font-bold mb-4">Description</h2>
               <p className="text-muted-foreground leading-relaxed">
                 {description || 'Experience comfort and convenience in the heart of Nagpur. This property offers modern amenities and is perfectly located for both business travelers and families. Close to major landmarks, shopping centers, and transportation hubs.'}
@@ -153,7 +153,7 @@ export default function DetailPage() {
             </div>
 
             {/* Amenities */}
-            <div className="border-b border-border pb-8 mb-8">
+            <div className="border-b border-gray-200 pb-8 mb-8">
               <h2 className="text-2xl font-bold mb-6">Amenities</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                 {amenities.length > 0 ? (
@@ -177,7 +177,7 @@ export default function DetailPage() {
             {/* Location */}
             <div className="pb-8">
               <h2 className="text-2xl font-bold mb-6">Location</h2>
-              <div className="aspect-video bg-muted rounded-2xl relative overflow-hidden border border-border">
+              <div className="aspect-video bg-muted rounded-2xl relative overflow-hidden border border-gray-200">
                 <div className="absolute inset-0 bg-slate-100 flex items-center justify-center">
                   <span className="text-muted-foreground font-bold uppercase tracking-widest text-sm">
                     Interactive Map - {displayLocation}
@@ -189,7 +189,7 @@ export default function DetailPage() {
 
           {/* Booking Card */}
           <div className="relative">
-            <div className="card p-8 sticky top-32 shadow-2xl border border-border">
+            <div className="card p-8 sticky top-32 shadow-2xl border border-gray-200">
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <span className="text-3xl font-black italic">{formatPrice()}</span>
@@ -205,9 +205,9 @@ export default function DetailPage() {
               </div>
 
               <div className="space-y-4 mb-8">
-                <div className="border border-border rounded-lg overflow-hidden">
-                  <div className="flex border-b border-border">
-                    <div className="flex-1 p-3 border-r border-border">
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="flex border-b border-gray-200">
+                    <div className="flex-1 p-3 border-r border-gray-200">
                       <span className="block text-[10px] font-black uppercase text-muted-foreground">Check-in</span>
                       <input type="text" placeholder="Add date" className="text-sm outline-none w-full bg-transparent" />
                     </div>

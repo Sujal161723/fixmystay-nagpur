@@ -4,7 +4,7 @@ export const Button = ({ children, variant = 'primary', className = '', ...props
   const variants = {
     primary: 'bg-primary text-white hover:bg-blue-700',
     secondary: 'bg-secondary text-white hover:bg-slate-800',
-    outline: 'border border-border bg-transparent hover:bg-accent text-slate-900',
+    outline: 'border border-gray-200 bg-transparent hover:bg-accent text-slate-900',
     ghost: 'bg-transparent hover:bg-accent text-slate-600',
   };
 
@@ -23,7 +23,7 @@ export const Input = ({ label, error, className = '', ...props }) => {
     <div className="w-full">
       {label && <label className="block text-xs font-black uppercase text-muted-foreground mb-2 tracking-wider">{label}</label>}
       <input 
-        className={`w-full px-4 py-2.5 rounded-lg border border-border focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all bg-white ${className}`}
+        className={`w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all bg-white ${className}`}
         {...props}
       />
       {error && <p className="text-red-500 text-xs mt-1 font-medium italic">{error}</p>}
@@ -33,7 +33,7 @@ export const Input = ({ label, error, className = '', ...props }) => {
 
 export const Card = ({ children, className = '', hover = true }) => {
   return (
-    <div className={`bg-white border border-border rounded-xl overflow-hidden ${hover ? 'hover:shadow-lg transition-all duration-300' : ''} ${className}`}>
+    <div className={`bg-white border border-gray-200 rounded-xl overflow-hidden ${hover ? 'hover:shadow-lg transition-all duration-300' : ''} ${className}`}>
       {children}
     </div>
   );

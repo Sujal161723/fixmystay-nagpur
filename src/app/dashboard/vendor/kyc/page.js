@@ -158,7 +158,7 @@ export default function VendorKYC() {
                     className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all ${
                       formData.idType === 'aadhaar'
                         ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
+                        : 'border-gray-200 hover:border-primary/50'
                     }`}
                   >
                     <input
@@ -180,7 +180,7 @@ export default function VendorKYC() {
                     className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all ${
                       formData.idType === 'pan'
                         ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
+                        : 'border-gray-200 hover:border-primary/50'
                     }`}
                   >
                     <input
