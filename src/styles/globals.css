@@ -38,13 +38,6 @@
   }
 }
 
-/* Mobile-First Typography */
-@layer utilities {
-  .font-sans {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
-}
-
 /* Custom scrollbar for mobile */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -57,70 +50,123 @@
 @layer components {
   /* Container with mobile-optimized padding */
   .container-custom {
-    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    width: 100%;
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  @media (min-width: 640px) {
+    .container-custom {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .container-custom {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
   }
 
   /* Glass card effect with soft outlines */
   .glass-card {
-    @apply bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   /* Primary button with high contrast */
   .btn-primary {
-    @apply bg-primary text-white font-semibold rounded-2xl px-6 py-3 
-           hover:bg-primary/90 transition-all duration-200 
-           active:scale-[0.97] shadow-sm hover:shadow-md;
+    background-color: #2563eb;
+    color: white;
+    font-weight: 600;
+    border-radius: 1rem;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  .btn-primary:hover {
+    background-color: rgba(37, 99, 235, 0.9);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  .btn-primary:active {
+    transform: scale(0.97);
   }
 
   /* Outline button */
   .btn-outline {
-    @apply bg-transparent border-2 border-primary text-primary font-semibold rounded-2xl px-6 py-3 
-           hover:bg-primary/5 transition-all duration-200 
-           active:scale-[0.97];
+    background-color: transparent;
+    border: 2px solid #2563eb;
+    color: #2563eb;
+    font-weight: 600;
+    border-radius: 1rem;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+  }
+  .btn-outline:hover {
+    background-color: rgba(37, 99, 235, 0.05);
+  }
+  .btn-outline:active {
+    transform: scale(0.97);
   }
 
   /* Input field with soft outline */
   .input-field {
-    @apply w-full px-4 py-3 rounded-2xl border border-gray-200 
-           focus:border-primary focus:ring-2 focus:ring-primary/20 
-           outline-none transition-all duration-200 
-           placeholder:text-muted-foreground text-base;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    outline: none;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+  }
+  .input-field:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  }
+  .input-field::placeholder {
+    color: #64748b;
   }
 
   /* Badge styles */
   .badge {
-    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
   }
 
   .badge-primary {
-    @apply bg-primary/10 text-primary;
+    background-color: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
   }
 
   .badge-success {
-    @apply bg-green-100 text-green-700;
+    background-color: #dcfce7;
+    color: #166534;
   }
 
   .badge-warning {
-    @apply bg-amber-100 text-amber-700;
+    background-color: #fef3c7;
+    color: #92400e;
   }
 
   .badge-error {
-    @apply bg-red-100 text-red-700;
+    background-color: #fee2e2;
+    color: #991b1b;
   }
 
   /* Text gradient */
   .text-gradient {
-    @apply bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent;
-  }
-
-  /* Mobile-optimized hero text */
-  .hero-heading {
-    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight;
-  }
-
-  /* Section spacing for mobile */
-  .section-mobile {
-    @apply py-8 md:py-12 lg:py-16;
+    background: linear-gradient(to right, #2563eb, #1d4ed8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   /* Soft shadow for cards */
