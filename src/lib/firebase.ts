@@ -1,24 +1,16 @@
-<<<<<<< HEAD
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, collection, doc, addDoc, getDocs, getDoc, updateDoc, deleteDoc, query, where, orderBy, Timestamp } from 'firebase/firestore';
-import { getAuth, signInWithPhoneNumber, RecaptchaVerifier, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 
-// Extend Window interface for recaptchaVerifier
-declare global {
-  interface Window {
-    recaptchaVerifier?: RecaptchaVerifier;
-  }
-}
-
-// Firebase configuration - Replace with your actual config
+// Firebase configuration using environment variables
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "your-api-key",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "your-project.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "your-project-id",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "your-project.appspot.com",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "your-sender-id",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "your-app-id",
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "your-measurement-id"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
@@ -31,21 +23,24 @@ export interface Property {
   id?: string;
   name: string;
   description: string;
-  category: 'hotel' | 'pg' | 'flat' | 'resort' | 'villa' | 'farmhouse' | 'marriage_hall';
-  location: {
+  type: 'hotel' | 'pg' | 'flat' | 'room' | 'resort' | 'villa' | 'farmhouse' | 'marriage_hall';
+  location?: {
     city: string;
-    state: string;
-    address: string;
+    state?: string;
+    address?: string;
     lat?: number;
     lng?: number;
   };
+  city?: string;
   price: number;
   images: string[];
-  amenities: string[];
+  amenities?: string[];
   rooms?: number;
   guests?: number;
+  rating?: number;
+  reviewCount?: number;
   vendorId: string;
-  status: 'pending' | 'active' | 'inactive' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'inactive';
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -104,7 +99,7 @@ export interface AppUser {
 // Property Services
 export const propertyService = {
   async createProperty(data: Omit<Property, 'id' | 'createdAt' | 'updatedAt'>) {
-    const docRef = await addDoc(collection(db, 'properties'), {
+    const docRef = await addDoc(collection(db, 'listings'), {
       ...data,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
@@ -114,9 +109,9 @@ export const propertyService = {
 
   async getPropertiesByLocation(city: string) {
     const q = query(
-      collection(db, 'properties'),
-      where('location.city', '==', city),
-      where('status', '==', 'active'),
+      collection(db, 'listings'),
+      where('city', '==', city),
+      where('status', '==', 'approved'),
       orderBy('createdAt', 'desc')
     );
     const snapshot = await getDocs(q);
@@ -124,13 +119,13 @@ export const propertyService = {
   },
 
   async getPropertyById(id: string) {
-    const docRef = doc(db, 'properties', id);
+    const docRef = doc(db, 'listings', id);
     const docSnap = await getDoc(docRef);
     return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as Property : null;
   },
 
   async updateProperty(id: string, data: Partial<Property>) {
-    const docRef = doc(db, 'properties', id);
+    const docRef = doc(db, 'listings', id);
     await updateDoc(docRef, {
       ...data,
       updatedAt: Timestamp.now(),
@@ -138,12 +133,12 @@ export const propertyService = {
   },
 
   async deleteProperty(id: string) {
-    await deleteDoc(doc(db, 'properties', id));
+    await deleteDoc(doc(db, 'listings', id));
   },
 
   async getVendorProperties(vendorId: string) {
     const q = query(
-      collection(db, 'properties'),
+      collection(db, 'listings'),
       where('vendorId', '==', vendorId),
       orderBy('createdAt', 'desc')
     );
@@ -152,19 +147,19 @@ export const propertyService = {
   },
 
   async getAllProperties() {
-    const q = query(collection(db, 'properties'), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, 'listings'), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property));
   },
 
-  async searchProperties(city?: string, category?: string) {
-    let q = query(collection(db, 'properties'), where('status', '==', 'active'));
+  async searchProperties(city?: string, type?: string) {
+    let q = query(collection(db, 'listings'), where('status', '==', 'approved'));
     
     if (city) {
-      q = query(q, where('location.city', '==', city));
+      q = query(q, where('city', '==', city));
     }
-    if (category) {
-      q = query(q, where('category', '==', category));
+    if (type) {
+      q = query(q, where('type', '==', type));
     }
     
     const snapshot = await getDocs(q);
@@ -268,21 +263,18 @@ export const partnerService = {
 
 // Auth Services
 export const authService = {
-  async signInWithPhone(phoneNumber: string, recaptchaContainer: string) {
-    if (!auth.app) throw new Error('Firebase app not initialized');
-    
-    // RecaptchaVerifier is automatically attached to auth
-    const confirmationResult = await signInWithPhoneNumber(
-      auth,
-      phoneNumber,
-      window.recaptchaVerifier
-    );
-    return confirmationResult;
+  async signIn(email: string, password: string) {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
   },
 
-  async verifyOTP(confirmationResult: any, code: string) {
-    const result = await confirmationResult.confirm(code);
+  async signUp(email: string, password: string) {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
     return result.user;
+  },
+
+  async resetPassword(email: string) {
+    await sendPasswordResetEmail(auth, email);
   },
 
   async signOut() {
@@ -317,87 +309,7 @@ export const locationService = {
       return null;
     }
   },
-
-  async getBrowserLocation(): Promise<{ city: string; state: string } | null> {
-    return new Promise((resolve) => {
-      if (!navigator.geolocation) {
-        resolve(null);
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          try {
-            const response = await fetch(
-              `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${process.env.NEXT_PUBLIC_OPENCAGE_API_KEY}`
-            );
-            const data = await response.json();
-            
-            if (data.results && data.results.length > 0) {
-              const components = data.results[0].components;
-              resolve({
-                city: components.city || components.town || components.village,
-                state: components.state,
-              });
-            } else {
-              resolve(null);
-            }
-          } catch (error) {
-            resolve(null);
-          }
-        },
-        () => resolve(null)
-      );
-    });
-  },
 };
 
 export { db, auth };
 export default app;
-=======
-// Firebase modules import
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { getStorage } from "firebase/storage";
-
-// Debug: Log the API key to check if environment variables are loading correctly
-// This will help us see if NEXT_PUBLIC_FIREBASE_API_KEY is being read properly
-console.log("=== Firebase Configuration Debug ===");
-console.log("NEXT_PUBLIC_FIREBASE_API_KEY:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? "Present (length: " + process.env.NEXT_PUBLIC_FIREBASE_API_KEY.length + ")" : "undefined");
-console.log("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:", process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN);
-console.log("NEXT_PUBLIC_FIREBASE_PROJECT_ID:", process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
-console.log("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:", process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
-console.log("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID:", process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID);
-console.log("NEXT_PUBLIC_FIREBASE_APP_ID:", process.env.NEXT_PUBLIC_FIREBASE_APP_ID);
-console.log("====================================");
-
-// Firebase configuration using environment variables
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-};
-
-// Validate required configuration
-const requiredKeys = ['apiKey', 'authDomain', 'projectId'];
-const missingKeys = requiredKeys.filter(key => !firebaseConfig[key]);
-if (missingKeys.length > 0) {
-  console.error("ERROR: Missing required Firebase configuration keys:", missingKeys);
-  console.error("Please check your .env.local file and ensure all NEXT_PUBLIC_FIREBASE_* variables are set correctly.");
-}
-
-// Initialize Firebase
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const storage = getStorage(app);
-
-// Export Firebase services
-export { app, db, auth, storage };
->>>>>>> 24274fa8898d80e7b1111d181bed3310353f577e
