@@ -49,33 +49,25 @@ const heroImages = [
     id: 'partner',
     title: 'Become a Partner & Earn',
     subtitle: 'List your property and reach millions of travelers',
-    bgColor: 'from-rose-500 to-rose-600',
     imageSrc: '/images/hero/(Become a Partner & Earn – Visual).png',
-    keywords: ['partner', 'earn'],
   },
   {
     id: 'budget',
     title: 'Budget & Hourly Stays Available',
     subtitle: 'Flexible options for every budget',
-    bgColor: 'from-violet-500 to-violet-600',
     imageSrc: '/images/hero/(Budget & Hourly Stay – Visual).png',
-    keywords: ['budget', 'hourly'],
   },
   {
     id: 'verified',
     title: 'Verified Properties Only',
     subtitle: 'Every listing is checked for quality and authenticity',
-    bgColor: 'from-emerald-500 to-emerald-600',
     imageSrc: '/images/hero/(Verified Property – Visual).png',
-    keywords: ['verified'],
   },
   {
     id: 'city',
     title: 'Discover Stays in Your City',
     subtitle: 'From luxury hotels to cozy PGs',
-    bgColor: 'from-amber-500 to-amber-600',
     imageSrc: '/images/hero/(Discover Stay in Your City – Visual).png',
-    keywords: ['city', 'discover'],
   },
 ];
 
@@ -216,7 +208,7 @@ export default function HomePage() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
+    }, 3500);
     return () => clearInterval(timer);
   }, []);
   const [user, setUser] = useState<any>(null);
@@ -368,15 +360,14 @@ export default function HomePage() {
                 index === currentSlide ? 'opacity-100' : 'opacity-0'
               }`}
             >
-              {/* Background image with overlay */}
+              {/* Background image with soft black overlay */}
               <div className="absolute inset-0">
                 <img
                   src={slide.imageSrc}
                   alt={slide.title}
                   className="w-full h-full object-cover"
                 />
-                <div className={`absolute inset-0 bg-gradient-to-br ${slide.bgColor} opacity-60`}></div>
-                <div className="absolute inset-0 bg-black/20"></div>
+                <div className="absolute inset-0 bg-black/25"></div>
               </div>
               
               {/* Content */}
@@ -408,19 +399,6 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Navigation arrows */}
-          <button
-            onClick={() => setCurrentSlide((prev) => (prev - 1 + heroImages.length) % heroImages.length)}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <button
-            onClick={() => setCurrentSlide((prev) => (prev + 1) % heroImages.length)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
         </div>
 
         {/* Search Bar - Overlapping */}
