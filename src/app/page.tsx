@@ -43,37 +43,39 @@ const popularCities = [
   'Pune', 'Nagpur', 'Jaipur', 'Goa', 'Manali'
 ];
 
-// Banner slides for hero
-const bannerSlides = [
+// Hero images configuration - mapped by filename detection
+const heroImages = [
   {
-    id: 1,
-    title: 'Find Hotels, PG & Rooms Easily',
-    subtitle: 'Discover the perfect stay for every occasion',
-    bgColor: 'from-sky-500 to-sky-600',
-  },
-  {
-    id: 2,
-    title: 'Verified Properties Only',
-    subtitle: 'Every listing is checked for quality and authenticity',
-    bgColor: 'from-emerald-500 to-emerald-600',
-  },
-  {
-    id: 3,
-    title: 'Budget & Hourly Stays Available',
-    subtitle: 'Flexible options for every budget',
-    bgColor: 'from-violet-500 to-violet-600',
-  },
-  {
-    id: 4,
-    title: 'Discover Stays in Your City',
-    subtitle: 'From luxury hotels to cozy PGs',
-    bgColor: 'from-amber-500 to-amber-600',
-  },
-  {
-    id: 5,
+    id: 'partner',
     title: 'Become a Partner & Earn',
     subtitle: 'List your property and reach millions of travelers',
     bgColor: 'from-rose-500 to-rose-600',
+    imageSrc: '/images/hero/(Become a Partner & Earn – Visual).png',
+    keywords: ['partner', 'earn'],
+  },
+  {
+    id: 'budget',
+    title: 'Budget & Hourly Stays Available',
+    subtitle: 'Flexible options for every budget',
+    bgColor: 'from-violet-500 to-violet-600',
+    imageSrc: '/images/hero/(Budget & Hourly Stay – Visual).png',
+    keywords: ['budget', 'hourly'],
+  },
+  {
+    id: 'verified',
+    title: 'Verified Properties Only',
+    subtitle: 'Every listing is checked for quality and authenticity',
+    bgColor: 'from-emerald-500 to-emerald-600',
+    imageSrc: '/images/hero/(Verified Property – Visual).png',
+    keywords: ['verified'],
+  },
+  {
+    id: 'city',
+    title: 'Discover Stays in Your City',
+    subtitle: 'From luxury hotels to cozy PGs',
+    bgColor: 'from-amber-500 to-amber-600',
+    imageSrc: '/images/hero/(Discover Stay in Your City – Visual).png',
+    keywords: ['city', 'discover'],
   },
 ];
 
@@ -210,15 +212,15 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [user, setUser] = useState<any>(null);
-
   // Auto-slide for banner
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
+      setCurrentSlide((prev) => (prev + 1) % heroImages.length);
     }, 5000);
     return () => clearInterval(timer);
   }, []);
+  const [user, setUser] = useState<any>(null);
+
 
   // Check auth state
   useEffect(() => {
@@ -359,20 +361,32 @@ export default function HomePage() {
       {/* Hero Section with Sliding Banner */}
       <section className="pt-16">
         <div className="relative h-[400px] md:h-[500px] overflow-hidden">
-          {bannerSlides.map((slide, index) => (
+          {heroImages.map((slide, index) => (
             <div
               key={slide.id}
               className={`absolute inset-0 transition-opacity duration-1000 ${
                 index === currentSlide ? 'opacity-100' : 'opacity-0'
               }`}
             >
-              <div className={`h-full bg-gradient-to-br ${slide.bgColor} flex items-center`}>
+              {/* Background image with overlay */}
+              <div className="absolute inset-0">
+                <img
+                  src={slide.imageSrc}
+                  alt={slide.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className={`absolute inset-0 bg-gradient-to-br ${slide.bgColor} opacity-60`}></div>
+                <div className="absolute inset-0 bg-black/20"></div>
+              </div>
+              
+              {/* Content */}
+              <div className="relative h-full flex items-center">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                   <div className="max-w-2xl">
-                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-6">
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-6 drop-shadow-lg">
                       {slide.title}
                     </h1>
-                    <p className="text-xl text-white/90 mb-8">
+                    <p className="text-xl text-white/95 mb-8 drop-shadow-md">
                       {slide.subtitle}
                     </p>
                   </div>
@@ -383,7 +397,7 @@ export default function HomePage() {
 
           {/* Slide indicators */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
-            {bannerSlides.map((_, index) => (
+            {heroImages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
@@ -396,13 +410,13 @@ export default function HomePage() {
 
           {/* Navigation arrows */}
           <button
-            onClick={() => setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length)}
+            onClick={() => setCurrentSlide((prev) => (prev - 1 + heroImages.length) % heroImages.length)}
             className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <button
-            onClick={() => setCurrentSlide((prev) => (prev + 1) % bannerSlides.length)}
+            onClick={() => setCurrentSlide((prev) => (prev + 1) % heroImages.length)}
             className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
           >
             <ChevronRight className="w-6 h-6" />
