@@ -27,8 +27,10 @@ import {
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
+import LocationSearch from '@/components/LocationSearch';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { LocationData, formatLocation } from '@/lib/location';
 
 // Category definitions
 const categories = [
@@ -65,6 +67,7 @@ function ListingsContent() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedCity, setSelectedCity] = useState<string>('');
+  const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBudget, setSelectedBudget] = useState<string>('');
   const [selectedSort, setSelectedSort] = useState<string>('nearest');
@@ -75,8 +78,18 @@ function ListingsContent() {
   useEffect(() => {
     const category = searchParams.get('category') || '';
     const city = searchParams.get('city') || '';
+    const state = searchParams.get('state') || '';
     setSelectedCategory(category);
     setSelectedCity(city);
+    
+    // Set location data if available
+    if (city) {
+      setSelectedLocation({
+        city,
+        state,
+        country: 'India',
+      });
+    }
   }, [searchParams]);
 
   // Fetch properties from Firestore
@@ -122,11 +135,18 @@ function ListingsContent() {
   const filteredProperties = useMemo(() => {
     let result = [...properties];
 
-    // Filter by city
-    if (selectedCity) {
+    // Filter by city (using location data if available, otherwise use city string)
+    if (selectedLocation) {
+      const cityLower = selectedLocation.city.toLowerCase();
+      result = result.filter(p => {
+        const propertyCity = (p.location?.city || p.city || '').toLowerCase();
+        return propertyCity.includes(cityLower) || cityLower.includes(propertyCity);
+      });
+    } else if (selectedCity) {
+      const cityLower = selectedCity.toLowerCase();
       result = result.filter(p => 
-        p.location?.city?.toLowerCase().includes(selectedCity.toLowerCase()) ||
-        p.city?.toLowerCase().includes(selectedCity.toLowerCase())
+        p.location?.city?.toLowerCase().includes(cityLower) ||
+        p.city?.toLowerCase().includes(cityLower)
       );
     }
 
@@ -165,7 +185,7 @@ function ListingsContent() {
     }
 
     return result;
-  }, [properties, selectedCity, searchQuery, selectedBudget, selectedSort]);
+  }, [properties, selectedCity, selectedLocation, searchQuery, selectedBudget, selectedSort]);
 
   // Pagination
   const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
@@ -181,7 +201,24 @@ function ListingsContent() {
     setCurrentPage(1);
     const params = new URLSearchParams();
     params.set('category', categoryId);
-    if (selectedCity) params.set('city', selectedCity);
+    if (selectedLocation) {
+      params.set('city', selectedLocation.city);
+      if (selectedLocation.state) params.set('state', selectedLocation.state);
+    } else if (selectedCity) {
+      params.set('city', selectedCity);
+    }
+    router.push(`/listings?${params.toString()}`);
+  };
+
+  const handleLocationSelect = (newLocation: LocationData) => {
+    setSelectedLocation(newLocation);
+    setSelectedCity(newLocation.city);
+    setCurrentPage(1);
+    
+    const params = new URLSearchParams();
+    params.set('city', newLocation.city);
+    if (newLocation.state) params.set('state', newLocation.state);
+    if (selectedCategory) params.set('category', selectedCategory);
     router.push(`/listings?${params.toString()}`);
   };
 
@@ -224,11 +261,13 @@ function ListingsContent() {
         {/* Title */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900">
-            {currentCategory ? `${currentCategory.name} in India` : 'All Properties'}
+            {currentCategory 
+              ? `${currentCategory.name} ${selectedLocation ? `in ${formatLocation(selectedLocation)}` : 'in India'}`
+              : (selectedLocation ? `Properties near ${formatLocation(selectedLocation)}` : 'All Properties')}
           </h1>
           <p className="text-slate-600 mt-2">
             {filteredProperties.length} properties found
-            {selectedCity && ` in ${selectedCity}`}
+            {selectedLocation && ` near ${formatLocation(selectedLocation)}`}
           </p>
         </div>
 
@@ -283,20 +322,12 @@ function ListingsContent() {
               />
             </div>
 
-            {/* City Filter */}
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                value={selectedCity}
-                onChange={(e) => {
-                  setSelectedCity(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="Enter city..."
-                className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
-              />
-            </div>
+            {/* Location Search with Autocomplete */}
+            <LocationSearch
+              onLocationSelect={handleLocationSelect}
+              currentLocation={selectedLocation}
+              placeholder="Search city or location..."
+            />
           </div>
 
           {/* Smart Filters */}
@@ -339,9 +370,15 @@ function ListingsContent() {
               ))}
 
               {/* Clear Filters */}
-              {(selectedBudget || selectedSort !== 'nearest' || searchQuery) && (
+              {(selectedBudget || selectedSort !== 'nearest' || searchQuery || selectedLocation) && (
                 <button
-                  onClick={handleClearFilters}
+                  onClick={() => {
+                    handleClearFilters();
+                    setSelectedLocation(null);
+                    setSelectedCity('');
+                    setCurrentPage(1);
+                    router.push('/listings');
+                  }}
                   className="px-3 py-1.5 rounded-full text-sm font-medium text-red-600 hover:bg-red-50 transition-colors ml-auto"
                 >
                   Clear All

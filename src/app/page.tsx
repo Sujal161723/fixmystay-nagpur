@@ -23,7 +23,9 @@ import {
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
+import LocationSearch from '@/components/LocationSearch';
 import { auth, db } from '@/lib/firebase';
+import { LocationData, detectLocation, formatLocation } from '@/lib/location';
 
 // Property categories with icons
 const categories = [
@@ -199,10 +201,9 @@ function HorizontalSlider({ category, title, firestoreType }: { category: string
 export default function HomePage() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [location, setLocation] = useState<{ city: string; state: string } | null>(null);
+  const [location, setLocation] = useState<LocationData | null>(null);
   const [searchLocation, setSearchLocation] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   // Auto-slide for banner
   useEffect(() => {
@@ -222,35 +223,43 @@ export default function HomePage() {
     return () => unsubscribe();
   }, []);
 
-  // Detect user location on mount
+  // Detect user location on mount using smart location system
   useEffect(() => {
-    const detectLocation = async () => {
+    const initLocation = async () => {
       try {
-        // Only run in browser
         if (typeof window !== 'undefined') {
-          let userLocation = { city: 'Mumbai', state: 'Maharashtra' };
+          const userLocation = await detectLocation();
           setLocation(userLocation);
-          setSearchLocation(userLocation.city);
+          setSearchLocation(formatLocation(userLocation));
         }
       } catch (error) {
         console.error('Location detection error:', error);
-        setLocation({ city: 'Mumbai', state: 'Maharashtra' });
-        setSearchLocation('Mumbai');
+        const defaultLocation: LocationData = {
+          city: 'Mumbai',
+          state: 'Maharashtra',
+          country: 'India',
+        };
+        setLocation(defaultLocation);
+        setSearchLocation('Mumbai, Maharashtra');
       } finally {
         setIsLoading(false);
       }
     };
 
-    detectLocation();
+    initLocation();
   }, []);
 
-  const handleLocationSelect = (city: string) => {
-    setSearchLocation(city);
-    setShowLocationDropdown(false);
+  const handleLocationSelect = (newLocation: LocationData) => {
+    setLocation(newLocation);
+    setSearchLocation(formatLocation(newLocation));
   };
 
   const handleSearch = () => {
-    router.push(`/listings?city=${searchLocation}`);
+    if (location) {
+      router.push(`/listings?city=${encodeURIComponent(location.city)}&state=${encodeURIComponent(location.state)}`);
+    } else {
+      router.push('/listings');
+    }
   };
 
   const handleCategoryClick = (categoryId: string) => {
@@ -406,39 +415,11 @@ export default function HomePage() {
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="relative">
-                  <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <MapPin className="w-5 h-5 text-slate-400" />
-                    <div className="relative flex-1">
-                      <input
-                        type="text"
-                        value={searchLocation}
-                        onChange={(e) => setSearchLocation(e.target.value)}
-                        onFocus={() => setShowLocationDropdown(true)}
-                        placeholder="Where are you?"
-                        className="w-full bg-transparent outline-none text-slate-900 placeholder:text-slate-400"
-                      />
-                      {showLocationDropdown && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-slate-200 max-h-60 overflow-y-auto z-50">
-                          <div className="p-2">
-                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2">
-                              Popular Cities
-                            </p>
-                            {popularCities.map((city) => (
-                              <button
-                                key={city}
-                                onClick={() => handleLocationSelect(city)}
-                                className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-700"
-                              >
-                                {city}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <LocationSearch
+                  onLocationSelect={handleLocationSelect}
+                  currentLocation={location}
+                  placeholder="Search city or location..."
+                />
 
                 <button
                   onClick={handleSearch}
@@ -453,9 +434,9 @@ export default function HomePage() {
             {location && (
               <div className="mt-4 text-center">
                 <p className="text-sm text-slate-500">
-                  Showing properties in{' '}
+                  Showing properties near{' '}
                   <span className="font-semibold text-slate-900">
-                    {location.city}, {location.state}
+                    {formatLocation(location)}
                   </span>
                 </p>
               </div>
