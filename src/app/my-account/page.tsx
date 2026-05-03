@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
@@ -24,8 +24,6 @@ import {
   X,
   ChevronRight,
   Home,
-  CheckCircle2,
-  XCircle,
 } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import {
@@ -115,6 +113,39 @@ const navItems: { id: TabType; label: string; icon: React.ReactNode }[] = [
   { id: 'payment', label: 'Make a Payment', icon: <CreditCard className="w-5 h-5" /> },
 ];
 
+// Skeleton loader component
+const SkeletonLoader = ({ className = '' }: { className?: string }) => (
+  <div className={`animate-pulse bg-slate-200 rounded ${className}`} />
+);
+
+const BookingSkeleton = () => (
+  <div className="flex flex-col sm:flex-row gap-4 p-4 bg-slate-50 rounded-xl">
+    <SkeletonLoader className="w-full sm:w-32 h-24 flex-shrink-0" />
+    <div className="flex-1 space-y-3">
+      <SkeletonLoader className="w-3/4 h-5" />
+      <SkeletonLoader className="w-1/2 h-4" />
+      <div className="flex gap-4">
+        <SkeletonLoader className="w-1/3 h-4" />
+        <SkeletonLoader className="w-1/4 h-4" />
+      </div>
+    </div>
+  </div>
+);
+
+const PropertyCardSkeleton = () => (
+  <div className="bg-slate-50 rounded-xl overflow-hidden">
+    <SkeletonLoader className="w-full h-40" />
+    <div className="p-4 space-y-3">
+      <SkeletonLoader className="w-3/4 h-5" />
+      <SkeletonLoader className="w-1/2 h-4" />
+      <div className="flex justify-between">
+        <SkeletonLoader className="w-1/3 h-5" />
+        <SkeletonLoader className="w-1/4 h-5" />
+      </div>
+    </div>
+  </div>
+);
+
 export default function MyAccountPage() {
   const auth = useAuth();
   const user = auth.user;
@@ -125,10 +156,24 @@ export default function MyAccountPage() {
   // State
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Lazy-loaded data states
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [enquiries, setEnquiries] = useState<Inquiry[]>([]);
   const [wishlist, setWishlist] = useState<SavedProperty[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Loading states per section
+  const [loadingSections, setLoadingSections] = useState<Record<string, boolean>>({
+    bookings: false,
+    enquiries: false,
+    wishlist: false,
+  });
+  const [fetchedSections, setFetchedSections] = useState<Record<string, boolean>>({
+    bookings: false,
+    enquiries: false,
+    wishlist: false,
+  });
+  
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({
     name: '',
@@ -137,89 +182,133 @@ export default function MyAccountPage() {
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
+  const [walletFetched, setWalletFetched] = useState(false);
 
-  // Fetch data from Firebase
+  // Memoized profile initialization
   useEffect(() => {
-    const fetchData = async () => {
-      if (!user) return;
+    if (userProfile) {
+      setProfileForm({
+        name: userProfile.displayName || userProfile.name || userProfile.firstName + ' ' + userProfile.lastName || '',
+        email: userProfile.email || user?.email || '',
+        phone: userProfile.phoneNumber || userProfile.phone || '',
+      });
+    } else if (user) {
+      setProfileForm({
+        name: user.displayName || '',
+        email: user.email || '',
+        phone: user.phoneNumber || '',
+      });
+    }
+  }, [userProfile, user]);
 
-      try {
-        setLoading(true);
+  // Lazy load bookings only when tab is selected
+  const loadBookings = useCallback(async () => {
+    if (!user || fetchedSections.bookings) return;
+    
+    setLoadingSections(prev => ({ ...prev, bookings: true }));
+    try {
+      const bookingsQuery = query(
+        collection(db, 'bookings'),
+        where('userId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+      );
+      const bookingsSnapshot = await getDocs(bookingsQuery);
+      const bookingsData: Booking[] = [];
 
-        // Fetch bookings
-        const bookingsQuery = query(
-          collection(db, 'bookings'),
-          where('userId', '==', user.uid),
-          orderBy('createdAt', 'desc')
-        );
-        const bookingsSnapshot = await getDocs(bookingsQuery);
-        const bookingsData: Booking[] = [];
+      for (const docSnap of bookingsSnapshot.docs) {
+        const data = docSnap.data();
+        const booking = {
+          id: docSnap.id,
+          ...data,
+          checkIn: data.checkIn?.toDate ? data.checkIn.toDate() : new Date(data.checkIn),
+          checkOut: data.checkOut?.toDate ? data.checkOut.toDate() : new Date(data.checkOut),
+        } as Booking;
 
-        for (const docSnap of bookingsSnapshot.docs) {
-          const data = docSnap.data();
-          const booking = {
-            id: docSnap.id,
-            ...data,
-            checkIn: data.checkIn?.toDate ? data.checkIn.toDate() : new Date(data.checkIn),
-            checkOut: data.checkOut?.toDate ? data.checkOut.toDate() : new Date(data.checkOut),
-          } as Booking;
-
-          if (data.propertyId) {
-            const propertyRef = doc(db, 'listings', data.propertyId);
-            const propertySnap = await getDoc(propertyRef);
-            if (propertySnap.exists()) {
-              const propertyData = propertySnap.data();
-              booking.property = {
-                name: propertyData.name,
-                city: propertyData.location?.city || propertyData.city || 'N/A',
-                images: propertyData.images || [],
-              };
-            }
+        if (data.propertyId) {
+          const propertyRef = doc(db, 'listings', data.propertyId);
+          const propertySnap = await getDoc(propertyRef);
+          if (propertySnap.exists()) {
+            const propertyData = propertySnap.data();
+            booking.property = {
+              name: propertyData.name,
+              city: propertyData.location?.city || propertyData.city || 'N/A',
+              images: propertyData.images || [],
+            };
           }
-          bookingsData.push(booking);
         }
-        setBookings(bookingsData);
+        bookingsData.push(booking);
+      }
+      setBookings(bookingsData);
+      setFetchedSections(prev => ({ ...prev, bookings: true }));
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    } finally {
+      setLoadingSections(prev => ({ ...prev, bookings: false }));
+    }
+  }, [user, fetchedSections.bookings]);
 
-        // Fetch inquiries
-        const inquiriesQuery = query(
-          collection(db, 'inquiries'),
-          where('userId', '==', user.uid),
-          orderBy('createdAt', 'desc')
-        );
-        const inquiriesSnapshot = await getDocs(inquiriesQuery);
-        const inquiriesData: Inquiry[] = [];
+  // Lazy load enquiries only when tab is selected
+  const loadEnquiries = useCallback(async () => {
+    if (!user || fetchedSections.enquiries) return;
+    
+    setLoadingSections(prev => ({ ...prev, enquiries: true }));
+    try {
+      const inquiriesQuery = query(
+        collection(db, 'inquiries'),
+        where('userId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+      );
+      const inquiriesSnapshot = await getDocs(inquiriesQuery);
+      const inquiriesData: Inquiry[] = [];
 
-        for (const docSnap of inquiriesSnapshot.docs) {
-          const data = docSnap.data();
-          const inquiry = {
-            id: docSnap.id,
-            ...data,
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
-          } as Inquiry;
+      for (const docSnap of inquiriesSnapshot.docs) {
+        const data = docSnap.data();
+        const inquiry = {
+          id: docSnap.id,
+          ...data,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+        } as Inquiry;
 
-          if (data.propertyId) {
-            const propertyRef = doc(db, 'listings', data.propertyId);
-            const propertySnap = await getDoc(propertyRef);
-            if (propertySnap.exists()) {
-              const propertyData = propertySnap.data();
-              inquiry.property = {
-                name: propertyData.name,
-                city: propertyData.location?.city || propertyData.city || 'N/A',
-                images: propertyData.images || [],
-              };
-            }
+        if (data.propertyId) {
+          const propertyRef = doc(db, 'listings', data.propertyId);
+          const propertySnap = await getDoc(propertyRef);
+          if (propertySnap.exists()) {
+            const propertyData = propertySnap.data();
+            inquiry.property = {
+              name: propertyData.name,
+              city: propertyData.location?.city || propertyData.city || 'N/A',
+              images: propertyData.images || [],
+            };
           }
-          inquiriesData.push(inquiry);
         }
-        setEnquiries(inquiriesData);
+        inquiriesData.push(inquiry);
+      }
+      setEnquiries(inquiriesData);
+      setFetchedSections(prev => ({ ...prev, enquiries: true }));
+    } catch (error) {
+      console.error('Error fetching enquiries:', error);
+    } finally {
+      setLoadingSections(prev => ({ ...prev, enquiries: false }));
+    }
+  }, [user, fetchedSections.enquiries]);
 
-        // Fetch wishlist (saved properties)
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          const userData = userDocSnap.data();
+  // Lazy load wishlist and wallet only when tab is selected
+  const loadWishlistAndWallet = useCallback(async () => {
+    if (!user || (fetchedSections.wishlist && walletFetched)) return;
+    
+    if (!fetchedSections.wishlist) {
+      setLoadingSections(prev => ({ ...prev, wishlist: true }));
+    }
+    
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        
+        // Load wishlist
+        if (!fetchedSections.wishlist) {
           const savedPropertyIds = userData.savedProperties || [];
-
           if (savedPropertyIds.length > 0) {
             const wishlistData: SavedProperty[] = [];
             for (const propId of savedPropertyIds) {
@@ -240,39 +329,35 @@ export default function MyAccountPage() {
             }
             setWishlist(wishlistData);
           }
-
-          // Get wallet balance
-          setWalletBalance(userData.walletBalance || 0);
+          setFetchedSections(prev => ({ ...prev, wishlist: true }));
         }
-      } catch (error) {
-        console.error('Error fetching account data:', error);
-      } finally {
-        setLoading(false);
+        
+        // Load wallet balance
+        if (!walletFetched) {
+          setWalletBalance(userData.walletBalance || 0);
+          setWalletFetched(true);
+        }
       }
-    };
-
-    fetchData();
-  }, [user]);
-
-  // Initialize profile form
-  useEffect(() => {
-    if (userProfile) {
-      setProfileForm({
-        name: userProfile.displayName || userProfile.name || userProfile.firstName + ' ' + userProfile.lastName || '',
-        email: userProfile.email || user?.email || '',
-        phone: userProfile.phoneNumber || userProfile.phone || '',
-      });
-    } else if (user) {
-      setProfileForm({
-        name: user.displayName || '',
-        email: user.email || '',
-        phone: user.phoneNumber || '',
-      });
+    } catch (error) {
+      console.error('Error fetching wishlist/wallet:', error);
+    } finally {
+      setLoadingSections(prev => ({ ...prev, wishlist: false }));
     }
-  }, [userProfile, user]);
+  }, [user, fetchedSections.wishlist, walletFetched]);
+
+  // Handle tab change - lazy load data
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    setMobileMenuOpen(false);
+    
+    // Lazy load data based on tab
+    if (tab === 'bookings') loadBookings();
+    else if (tab === 'enquiries') loadEnquiries();
+    else if (tab === 'wishlist' || tab === 'wallet') loadWishlistAndWallet();
+  };
 
   // Handle profile update
-  const handleProfileUpdate = async (e: React.FormEvent) => {
+  const handleProfileUpdate = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
@@ -296,20 +381,20 @@ export default function MyAccountPage() {
     } finally {
       setSavingProfile(false);
     }
-  };
+  }, [user, profileForm]);
 
   // Handle logout
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await logout();
       router.push('/signin');
     } catch (error) {
       console.error('Logout failed:', error);
     }
-  };
+  }, [logout, router]);
 
   // Render content based on active tab
-  const renderContent = () => {
+  const renderContent = useMemo(() => {
     switch (activeTab) {
       case 'profile':
         return (
@@ -443,7 +528,12 @@ export default function MyAccountPage() {
                 <CardDescription>View and manage your reservations</CardDescription>
               </CardHeader>
               <CardContent>
-                {bookings.length === 0 ? (
+                {loadingSections.bookings ? (
+                  <div className="space-y-4">
+                    <BookingSkeleton />
+                    <BookingSkeleton />
+                  </div>
+                ) : bookings.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
                       <Calendar className="w-8 h-8 text-slate-400" />
@@ -465,6 +555,7 @@ export default function MyAccountPage() {
                           }
                           alt={booking.property?.name || 'Property'}
                           className="w-full sm:w-32 h-24 rounded-lg object-cover"
+                          loading="lazy"
                         />
                         <div className="flex-1">
                           <div className="flex items-start justify-between">
@@ -507,7 +598,12 @@ export default function MyAccountPage() {
                 <CardDescription>Track your property inquiries</CardDescription>
               </CardHeader>
               <CardContent>
-                {enquiries.length === 0 ? (
+                {loadingSections.enquiries ? (
+                  <div className="space-y-4">
+                    <BookingSkeleton />
+                    <BookingSkeleton />
+                  </div>
+                ) : enquiries.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
                       <MessageSquare className="w-8 h-8 text-slate-400" />
@@ -563,7 +659,13 @@ export default function MyAccountPage() {
                 <CardDescription>Saved properties you're interested in</CardDescription>
               </CardHeader>
               <CardContent>
-                {wishlist.length === 0 ? (
+                {loadingSections.wishlist ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <PropertyCardSkeleton />
+                    <PropertyCardSkeleton />
+                    <PropertyCardSkeleton />
+                  </div>
+                ) : wishlist.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
                       <Heart className="w-8 h-8 text-slate-400" />
@@ -583,6 +685,7 @@ export default function MyAccountPage() {
                             src={property.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop'}
                             alt={property.name}
                             className="w-full h-full object-cover"
+                            loading="lazy"
                           />
                           <button className="absolute top-2 right-2 p-2 bg-white/80 backdrop-blur-sm rounded-full">
                             <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
@@ -708,18 +811,7 @@ export default function MyAccountPage() {
       default:
         return null;
     }
-  };
-
-  if (loading && !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-500">Loading your account...</p>
-        </div>
-      </div>
-    );
-  }
+  }, [activeTab, loadingSections, bookings, enquiries, wishlist, walletBalance, isEditingProfile, profileForm, savingProfile, handleProfileUpdate]);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -780,10 +872,7 @@ export default function MyAccountPage() {
               {navItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    setMobileMenuOpen(false);
-                  }}
+                  onClick={() => handleTabChange(item.id)}
                   className={`
                     w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
                     ${
@@ -822,7 +911,7 @@ export default function MyAccountPage() {
                 onClick={() => setMobileMenuOpen(false)}
               />
             )}
-            {renderContent()}
+            {renderContent}
           </div>
         </div>
       </div>
