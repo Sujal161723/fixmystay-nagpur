@@ -158,18 +158,18 @@ export default function DashboardUserPage() {
   const authLoading = auth.loading;
   const logout = auth.logout;
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
+  const [hasRedirected, setHasRedirected] = useState(false);
 
-  // Auth protection - redirect to signin if not logged in
+  // Auth protection - redirect to signin if not logged in (only once)
   useEffect(() => {
-    setIsClient(true);
-    if (!authLoading && !user) {
+    if (!authLoading && !user && !hasRedirected) {
+      setHasRedirected(true);
       router.push('/signin');
     }
-  }, [user, authLoading, router]);
+  }, [authLoading, user, hasRedirected, router]);
 
   // Show loading state while checking auth
-  if (authLoading || !isClient || (!user && !authLoading)) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
@@ -178,6 +178,11 @@ export default function DashboardUserPage() {
         </div>
       </div>
     );
+  }
+
+  // If no user after loading, don't render (redirect will happen)
+  if (!user) {
+    return null;
   }
 
   // State
