@@ -1,67 +1,62 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
-import { auth } from '@/lib/firebase';
-import { 
-  signInWithEmailAndPassword, 
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from "lucide-react";
+import Button from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
+import { auth } from "@/lib/firebase";
+import {
+  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  sendPasswordResetEmail 
-} from 'firebase/auth';
+  sendPasswordResetEmail,
+} from "firebase/auth";
 
-type AuthMode = 'signin' | 'signup' | 'forgot';
+type AuthMode = "signin" | "signup" | "forgot";
 
 export default function SignInPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<AuthMode>('signin');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [mode, setMode] = useState<AuthMode>("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
-      if (mode === 'signin') {
-        console.log('Attempting login...');
+      if (mode === "signin") {
+        console.log("Login attempt...");
         await signInWithEmailAndPassword(auth, email, password);
-        console.log('Login success! Redirecting to dashboard...');
-        // Small delay to ensure auth state is updated
-        setTimeout(() => {
-          router.push('/dashboard/user');
-        }, 100);
-      } else if (mode === 'signup') {
+        console.log("Login success");
+        // ❌ NO router.push here
+      } else if (mode === "signup") {
         if (password !== confirmPassword) {
-          setError('Passwords do not match');
+          setError("Passwords do not match");
           setLoading(false);
           return;
         }
-        console.log('Attempting signup...');
+
+        console.log("Signup attempt...");
         await createUserWithEmailAndPassword(auth, email, password);
-        console.log('Signup success! Setting user type and redirecting...');
-        // Set default user type
-        localStorage.setItem('userType', 'user');
-        // Small delay to ensure auth state is updated
-        setTimeout(() => {
-          router.push('/dashboard/user');
-        }, 100);
-      } else if (mode === 'forgot') {
+        console.log("Signup success");
+
+        localStorage.setItem("userType", "user");
+        // ❌ NO router.push here
+      } else if (mode === "forgot") {
         await sendPasswordResetEmail(auth, email);
-        setSuccess('Password reset email sent. Check your inbox.');
+        setSuccess("Password reset email sent. Check your inbox.");
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -70,22 +65,23 @@ export default function SignInPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {/* Back Link */}
-        <Link href="/" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6"
+        >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </Link>
 
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-xl">FM</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900">FixMyStay</h1>
           <p className="text-slate-600 mt-2">
-            {mode === 'signin' && 'Welcome back'}
-            {mode === 'signup' && 'Create your account'}
-            {mode === 'forgot' && 'Reset your password'}
+            {mode === "signin" && "Welcome back"}
+            {mode === "signup" && "Create your account"}
+            {mode === "forgot" && "Reset your password"}
           </p>
         </div>
 
@@ -122,7 +118,7 @@ export default function SignInPage() {
                 </div>
               </div>
 
-              {mode !== 'forgot' && (
+              {mode !== "forgot" && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Password
@@ -130,7 +126,7 @@ export default function SignInPage() {
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <input
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
@@ -140,104 +136,64 @@ export default function SignInPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showPassword ? <EyeOff /> : <Eye />}
                     </button>
                   </div>
                 </div>
               )}
 
-              {mode === 'signup' && (
+              {mode === "signup" && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Confirm Password
                   </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm your password"
-                      className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
-                      required
-                    />
-                  </div>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full border px-4 py-3 rounded-lg"
+                  />
                 </div>
               )}
 
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={loading}
-              >
-                {loading ? 'Please wait...' : (
-                  mode === 'signin' ? 'Sign In' : 
-                  mode === 'signup' ? 'Create Account' : 
-                  'Send Reset Link'
-                )}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading
+                  ? "Please wait..."
+                  : mode === "signin"
+                  ? "Sign In"
+                  : mode === "signup"
+                  ? "Create Account"
+                  : "Send Reset Link"}
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              {mode === 'signin' && (
+            <div className="mt-6 text-center text-sm">
+              {mode === "signin" && (
                 <>
-                  <p className="text-sm text-slate-600">
-                    Don't have an account?{' '}
-                    <button 
-                      onClick={() => setMode('signup')}
-                      className="text-sky-600 hover:underline font-medium"
-                    >
-                      Sign Up
-                    </button>
-                  </p>
-                  <p className="text-sm text-slate-600 mt-2">
-                    <button 
-                      onClick={() => setMode('forgot')}
-                      className="text-sky-600 hover:underline"
-                    >
-                      Forgot Password?
-                    </button>
-                  </p>
+                  <button onClick={() => setMode("signup")}>
+                    Create account
+                  </button>
+                  <br />
+                  <button onClick={() => setMode("forgot")}>
+                    Forgot password
+                  </button>
                 </>
               )}
-              {mode === 'signup' && (
-                <p className="text-sm text-slate-600">
-                  Already have an account?{' '}
-                  <button 
-                    onClick={() => setMode('signin')}
-                    className="text-sky-600 hover:underline font-medium"
-                  >
-                    Sign In
-                  </button>
-                </p>
+              {mode === "signup" && (
+                <button onClick={() => setMode("signin")}>
+                  Already have account
+                </button>
               )}
-              {mode === 'forgot' && (
-                <p className="text-sm text-slate-600">
-                  Remember your password?{' '}
-                  <button 
-                    onClick={() => setMode('signin')}
-                    className="text-sky-600 hover:underline font-medium"
-                  >
-                    Sign In
-                  </button>
-                </p>
+              {mode === "forgot" && (
+                <button onClick={() => setMode("signin")}>
+                  Back to login
+                </button>
               )}
             </div>
           </CardContent>
         </Card>
-
-        <p className="text-center text-sm text-slate-500 mt-6">
-          By continuing, you agree to our{' '}
-          <Link href="/terms" className="text-sky-600 hover:underline">
-            Terms of Service
-          </Link>
-          {' '}and{' '}
-          <Link href="/privacy" className="text-sky-600 hover:underline">
-            Privacy Policy
-          </Link>
-        </p>
       </div>
     </div>
   );
