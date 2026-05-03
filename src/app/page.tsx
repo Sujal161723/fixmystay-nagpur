@@ -290,7 +290,7 @@ export default function HomePage() {
             <div className="hidden md:flex items-center gap-4">
               {user ? (
                 <Link
-                  href="/my-account"
+                  href="/dashboard/user"
                   className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
                 >
                   <div className="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center text-white text-sm font-medium">
@@ -335,7 +335,7 @@ export default function HomePage() {
               <div className="pt-4 border-t border-slate-100">
                 {user ? (
                   <Link
-                    href="/my-account"
+                    href="/dashboard/user"
                     className="block bg-sky-500 text-white px-4 py-2 rounded-lg font-medium text-center"
                   >
                     My Dashboard

@@ -151,7 +151,7 @@ const PropertyCardSkeleton = () => (
   </div>
 );
 
-export default function MyAccountPage() {
+export default function DashboardUserPage() {
   const auth = useAuth();
   const user = auth.user;
   const userProfile = auth.userProfile;
@@ -524,7 +524,7 @@ export default function MyAccountPage() {
   const handleLogout = useCallback(async () => {
     try {
       await logout();
-      router.push('/signin');
+      router.push('/');
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -993,7 +993,7 @@ export default function MyAccountPage() {
       <div
         className="relative h-64 bg-cover bg-center"
         style={{
-          backgroundImage: `url('/images/hero/my-account.jpg')`,
+          backgroundImage: `url('/images/hero/(my account).png')`,
         }}
       >
         <div className="absolute inset-0 bg-slate-900/30" />

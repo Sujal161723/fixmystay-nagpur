@@ -19,7 +19,7 @@ const Navbar: React.FC<NavbarProps> = ({
   const [showNotifications, setShowNotifications] = useState(false);
 
   const userMenuItems = [
-    { icon: <User className="w-4 h-4" />, label: 'My Account', href: '/my-account' },
+    { icon: <User className="w-4 h-4" />, label: 'My Account', href: '/dashboard/user' },
     { icon: <Settings className="w-4 h-4" />, label: 'Settings', href: '/settings' },
     { divider: true },
     { icon: <LogOut className="w-4 h-4" />, label: 'Logout', href: '/logout', danger: true },
