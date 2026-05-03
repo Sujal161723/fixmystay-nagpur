@@ -10,8 +10,7 @@ import { auth } from '@/lib/firebase';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  onAuthStateChanged 
+  sendPasswordResetEmail 
 } from 'firebase/auth';
 
 type AuthMode = 'signin' | 'signup' | 'forgot';
@@ -26,20 +25,6 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [hasRedirected, setHasRedirected] = useState(false);
-
-  // Check if user is already logged in on mount (only once)
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user && !hasRedirected) {
-        setHasRedirected(true);
-        // Redirect based on user type - check Firestore for user type
-        const userType = localStorage.getItem('userType') || 'user';
-        router.push(`/dashboard/${userType}`);
-      }
-    });
-    return () => unsubscribe();
-  }, [router, hasRedirected]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,16 +35,19 @@ export default function SignInPage() {
     try {
       if (mode === 'signin') {
         await signInWithEmailAndPassword(auth, email, password);
-        // User type will be set by onAuthStateChanged listener
+        // Redirect to dashboard after successful login
+        router.push('/dashboard/user');
       } else if (mode === 'signup') {
         if (password !== confirmPassword) {
           setError('Passwords do not match');
           setLoading(false);
           return;
         }
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await createUserWithEmailAndPassword(auth, email, password);
         // Set default user type
         localStorage.setItem('userType', 'user');
+        // Redirect to dashboard after successful signup
+        router.push('/dashboard/user');
       } else if (mode === 'forgot') {
         await sendPasswordResetEmail(auth, email);
         setSuccess('Password reset email sent. Check your inbox.');
