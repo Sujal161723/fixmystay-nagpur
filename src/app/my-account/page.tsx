@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
@@ -24,6 +24,9 @@ import {
   X,
   ChevronRight,
   Home,
+  RefreshCw,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import {
@@ -35,7 +38,9 @@ import {
   doc,
   getDoc,
   updateDoc,
+  onSnapshot,
   Timestamp,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { updateProfile as updateFirebaseProfile } from 'firebase/auth';
 
@@ -150,8 +155,30 @@ export default function MyAccountPage() {
   const auth = useAuth();
   const user = auth.user;
   const userProfile = auth.userProfile;
+  const authLoading = auth.loading;
   const logout = auth.logout;
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+
+  // Auth protection - redirect to signin if not logged in
+  useEffect(() => {
+    setIsClient(true);
+    if (!authLoading && !user) {
+      router.push('/signin');
+    }
+  }, [user, authLoading, router]);
+
+  // Show loading state while checking auth
+  if (authLoading || !isClient || (!user && !authLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-500">Loading your account...</p>
+        </div>
+      </div>
+    );
+  }
 
   // State
   const [activeTab, setActiveTab] = useState<TabType>('profile');
@@ -183,6 +210,10 @@ export default function MyAccountPage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
   const [walletFetched, setWalletFetched] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentType, setPaymentType] = useState<'booking' | 'wallet'>('wallet');
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const walletUnsubRef = useRef<(() => void) | null>(null);
 
   // Memoized profile initialization
   useEffect(() => {
@@ -332,9 +363,15 @@ export default function MyAccountPage() {
           setFetchedSections(prev => ({ ...prev, wishlist: true }));
         }
         
-        // Load wallet balance
+        // Set up real-time wallet listener
         if (!walletFetched) {
-          setWalletBalance(userData.walletBalance || 0);
+          const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setWalletBalance(data.walletBalance || 0);
+            }
+          });
+          walletUnsubRef.current = unsubscribe;
           setWalletFetched(true);
         }
       }
@@ -344,6 +381,106 @@ export default function MyAccountPage() {
       setLoadingSections(prev => ({ ...prev, wishlist: false }));
     }
   }, [user, fetchedSections.wishlist, walletFetched]);
+
+  // Cleanup wallet listener on unmount
+  useEffect(() => {
+    return () => {
+      if (walletUnsubRef.current) {
+        walletUnsubRef.current();
+      }
+    };
+  }, []);
+
+  // Handle Add Money to Wallet (Razorpay Integration)
+  const handleAddMoney = useCallback(async () => {
+    const amount = parseInt(paymentAmount);
+    if (!amount || amount <= 0 || !user) return;
+
+    setProcessingPayment(true);
+    try {
+      // Create Razorpay order via API
+      const response = await fetch('/api/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, userId: user.uid, type: 'wallet' }),
+      });
+
+      const order = await response.json();
+
+      if (!order.success) {
+        throw new Error(order.error || 'Failed to create payment order');
+      }
+
+      // Load Razorpay script dynamically
+      const loadRazorpay = () => {
+        return new Promise((resolve) => {
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.onload = () => resolve(true);
+          script.onerror = () => resolve(false);
+          document.body.appendChild(script);
+        });
+      };
+
+      const loaded = await loadRazorpay();
+      if (!loaded || !(window as any).Razorpay) {
+        throw new Error('Failed to load payment gateway');
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: amount * 100, // Razorpay expects amount in paise
+        currency: 'INR',
+        name: 'FixMyStay',
+        description: 'Add Money to Wallet',
+        order_id: order.id,
+        handler: async (res: any) => {
+          try {
+            // Verify payment on server
+            const verifyRes = await fetch('/api/payment/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_payment_id: res.razorpay_payment_id,
+                razorpay_order_id: res.razorpay_order_id,
+                razorpay_signature: res.razorpay_signature,
+                userId: user.uid,
+                amount,
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              // Wallet balance will auto-update via real-time listener
+              setPaymentAmount('');
+              alert('Money added successfully!');
+            } else {
+              throw new Error(verifyData.error || 'Payment verification failed');
+            }
+          } catch (err: any) {
+            console.error('Payment verification error:', err);
+            alert('Payment verification failed. Please contact support.');
+          }
+        },
+        prefill: {
+          name: profileForm.name,
+          email: profileForm.email,
+          contact: profileForm.phone,
+        },
+        theme: {
+          color: '#0EA5E9',
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      alert(error.message || 'Payment failed. Please try again.');
+    } finally {
+      setProcessingPayment(false);
+    }
+  }, [paymentAmount, user, profileForm]);
 
   // Handle tab change - lazy load data
   const handleTabChange = (tab: TabType) => {
@@ -737,13 +874,50 @@ export default function MyAccountPage() {
                     ₹{formatPrice(walletBalance)}
                   </p>
                 </div>
-                <div className="flex gap-3">
-                  <Button variant="primary" fullWidth leftIcon={<CreditCard className="w-4 h-4" />}>
-                    Add Money
-                  </Button>
-                  <Button variant="outline" fullWidth>
-                    View Transactions
-                  </Button>
+                
+                {/* Add Money Section */}
+                <div className="border-t border-slate-200 pt-6">
+                  <h4 className="font-medium text-slate-900 mb-4">Add Money to Wallet</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Amount (₹)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">₹</span>
+                        <input
+                          type="number"
+                          value={paymentAmount}
+                          onChange={(e) => setPaymentAmount(e.target.value)}
+                          placeholder="Enter amount"
+                          className="w-full pl-8 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Quick amount buttons */}
+                    <div className="flex gap-2">
+                      {[100, 500, 1000, 2000].map((amt) => (
+                        <button
+                          key={amt}
+                          onClick={() => setPaymentAmount(amt.toString())}
+                          className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-sky-50 hover:border-sky-300 transition-colors"
+                        >
+                          ₹{amt}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <Button 
+                      variant="primary" 
+                      fullWidth 
+                      leftIcon={<CreditCard className="w-4 h-4" />}
+                      onClick={handleAddMoney}
+                      disabled={processingPayment || !paymentAmount || parseInt(paymentAmount) <= 0}
+                    >
+                      {processingPayment ? 'Processing...' : 'Add Money'}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
