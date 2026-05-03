@@ -42,19 +42,22 @@ const Badge: React.FC<BadgeProps> = ({
 };
 
 interface StatusBadgeProps {
-  status: 'pending' | 'approved' | 'rejected' | 'active' | 'inactive' | 'completed' | 'cancelled';
+  status: 'pending' | 'approved' | 'rejected' | 'active' | 'inactive' | 'completed' | 'cancelled' | 'confirmed' | 'replied' | 'closed';
   size?: 'sm' | 'md';
 }
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' }) => {
-  const statusConfig = {
-    pending: { variant: 'warning' as const, label: 'Pending' },
-    approved: { variant: 'success' as const, label: 'Approved' },
-    rejected: { variant: 'error' as const, label: 'Rejected' },
-    active: { variant: 'success' as const, label: 'Active' },
-    inactive: { variant: 'default' as const, label: 'Inactive' },
-    completed: { variant: 'success' as const, label: 'Completed' },
-    cancelled: { variant: 'error' as const, label: 'Cancelled' },
+  const statusConfig: Record<string, { variant: 'warning' | 'success' | 'error' | 'default' | 'info' | 'sky', label: string }> = {
+    pending: { variant: 'warning', label: 'Pending' },
+    approved: { variant: 'success', label: 'Approved' },
+    rejected: { variant: 'error', label: 'Rejected' },
+    active: { variant: 'success', label: 'Active' },
+    inactive: { variant: 'default', label: 'Inactive' },
+    completed: { variant: 'success', label: 'Completed' },
+    cancelled: { variant: 'error', label: 'Cancelled' },
+    confirmed: { variant: 'success', label: 'Confirmed' },
+    replied: { variant: 'info', label: 'Replied' },
+    closed: { variant: 'default', label: 'Closed' },
   };
 
   const config = statusConfig[status];
