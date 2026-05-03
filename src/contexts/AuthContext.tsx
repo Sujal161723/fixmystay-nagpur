@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -9,79 +9,97 @@ import {
   updateProfile,
   sendPasswordResetEmail,
   sendEmailVerification,
+  User as FirebaseUser,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
-const AuthContext = createContext({});
+interface UserProfile {
+  displayName?: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+  phone?: string;
+  role?: 'user' | 'vendor' | 'staff';
+  kycStatus?: 'pending' | 'approved' | 'rejected';
+  [key: string]: any;
+}
 
-/**
- * User Roles:
- * - 'staff': Super Admin/Staff - Full access to manage users, listings, and bookings
- * - 'vendor': Hotel/Property Owners - Can add and manage their properties (requires KYC)
- * - 'user': Regular Users - Can browse, search, book, and send inquiries
- */
+interface AuthContextType {
+  user: FirebaseUser | null;
+  userProfile: UserProfile | null;
+  userRole: string | null;
+  loading: boolean;
+  signUp: (email: string, password: string, firstName: string, lastName: string, role: string, phoneNumber?: string) => Promise<{ success: boolean; user?: FirebaseUser; error?: string }>;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; user?: FirebaseUser; error?: string }>;
+  logout: () => Promise<{ success: boolean; error?: string }>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  updateUserProfile: (uid: string, updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
+  submitKYC: (uid: string, kycData: any) => Promise<{ success: boolean; error?: string }>;
+  hasRole: (requiredRole: string) => boolean;
+  isKYCVerified: () => boolean;
+  isStaff: boolean;
+  isVendor: boolean;
+  isUser: boolean;
+  isAdmin: boolean;
+  isHotelOwner: boolean;
+}
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [userRole, setUserRole] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Sign up with email, password, and role
-  const signUp = useCallback(async (email, password, firstName, lastName, role, phoneNumber = '') => {
+  const signUp = useCallback(async (email: string, password: string, firstName: string, lastName: string, role: string, phoneNumber: string = '') => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
 
-      // Update user profile with display name
       await updateProfile(firebaseUser, {
         displayName: `${firstName} ${lastName}`,
       });
 
-      // Prepare user data for Firestore
-      const userData = {
-        email: firebaseUser.email,
+      const userData: UserProfile = {
+        email: firebaseUser.email || undefined,
         firstName,
         lastName,
         displayName: `${firstName} ${lastName}`,
-        role,
-        phoneNumber,
+        role: role as 'user' | 'vendor' | 'staff',
+        phoneNumber: phoneNumber || undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         isEmailVerified: firebaseUser.emailVerified,
       };
 
-      // For vendors, add KYC status
       if (role === 'vendor') {
         userData.kycStatus = 'pending';
         userData.kycDetails = null;
         userData.propertiesCount = 0;
       }
 
-      // Store additional user data in Firestore
       await setDoc(doc(db, 'users', firebaseUser.uid), userData);
-
-      // Send email verification
       await sendEmailVerification(firebaseUser);
 
       return { success: true, user: firebaseUser };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error.message };
     }
   }, []);
 
-  // Sign in with email and password
-  const signIn = useCallback(async (email, password) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       return { success: true, user: userCredential.user };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error.message };
     }
   }, []);
 
-  // Sign out
   const logout = useCallback(async () => {
     try {
       await signOut(auth);
@@ -89,28 +107,26 @@ export function AuthProvider({ children }) {
       setUserRole(null);
       setUserProfile(null);
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error.message };
     }
   }, []);
 
-  // Password reset
-  const resetPassword = useCallback(async (email) => {
+  const resetPassword = useCallback(async (email: string) => {
     try {
       await sendPasswordResetEmail(auth, email);
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error.message };
     }
   }, []);
 
-  // Fetch user profile from Firestore
-  const fetchUserProfile = useCallback(async (uid) => {
+  const fetchUserProfile = useCallback(async (uid: string) => {
     try {
       const docRef = doc(db, 'users', uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        return docSnap.data();
+        return docSnap.data() as UserProfile;
       }
       return null;
     } catch (error) {
@@ -119,8 +135,7 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Update user profile
-  const updateUserProfile = useCallback(async (uid, updates) => {
+  const updateUserProfile = useCallback(async (uid: string, updates: Partial<UserProfile>) => {
     try {
       const userRef = doc(db, 'users', uid);
       await updateDoc(userRef, {
@@ -128,13 +143,12 @@ export function AuthProvider({ children }) {
         updatedAt: new Date().toISOString(),
       });
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error.message };
     }
   }, []);
 
-  // Submit KYC details for vendors
-  const submitKYC = useCallback(async (uid, kycData) => {
+  const submitKYC = useCallback(async (uid: string, kycData: any) => {
     try {
       const userRef = doc(db, 'users', uid);
       await updateDoc(userRef, {
@@ -143,32 +157,29 @@ export function AuthProvider({ children }) {
         updatedAt: new Date().toISOString(),
       });
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error.message };
     }
   }, []);
 
-  // Check if user has specific role
-  const hasRole = useCallback((requiredRole) => {
+  const hasRole = useCallback((requiredRole: string) => {
     if (!userRole) return false;
-    if (userRole === 'staff') return true; // Staff has all access
+    if (userRole === 'staff') return true;
     return userRole === requiredRole;
   }, [userRole]);
 
-  // Check if vendor is KYC verified
   const isKYCVerified = useCallback(() => {
     if (!userProfile) return false;
     return userProfile.kycStatus === 'approved';
   }, [userProfile]);
 
-  // Listen to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
         const profile = await fetchUserProfile(firebaseUser.uid);
         if (profile) {
-          setUserRole(profile.role);
+          setUserRole(profile.role || null);
           setUserProfile(profile);
         }
       } else {
@@ -182,29 +193,26 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, [fetchUserProfile]);
 
-  // Role check helpers
   const isStaff = userRole === 'staff';
   const isVendor = userRole === 'vendor';
   const isUser = userRole === 'user';
 
-  const value = {
+  const value: AuthContextType = {
     user,
-    userRole,
     userProfile,
+    userRole,
     loading,
     signUp,
     signIn,
     logout,
     resetPassword,
-    hasRole,
-    isKYCVerified,
     updateUserProfile,
     submitKYC,
-    // Role flags
+    hasRole,
+    isKYCVerified,
     isStaff,
     isVendor,
     isUser,
-    // Legacy support
     isAdmin: userRole === 'staff',
     isHotelOwner: userRole === 'vendor',
   };
@@ -212,7 +220,7 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');

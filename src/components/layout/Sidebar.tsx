@@ -33,10 +33,11 @@ interface SidebarProps {
 }
 
 const userNavItems: NavItem[] = [
-  { icon: <LayoutDashboard className="w-5 h-5" />, label: 'Overview', href: '/dashboard/user' },
-  { icon: <Calendar className="w-5 h-5" />, label: 'My Bookings', href: '/dashboard/user/bookings' },
-  { icon: <Heart className="w-5 h-5" />, label: 'Wishlist', href: '/dashboard/user/wishlist', badge: 3 },
-  { icon: <Settings className="w-5 h-5" />, label: 'Settings', href: '/dashboard/user/settings' },
+  { icon: <Calendar className="w-5 h-5" />, label: 'My Bookings', href: '/dashboard/user' },
+  { icon: <LayoutDashboard className="w-5 h-5" />, label: 'Profile', href: '/dashboard/user/profile' },
+  { icon: <Heart className="w-5 h-5" />, label: 'Saved Properties', href: '/dashboard/user/saved' },
+  { icon: <LayoutDashboard className="w-5 h-5" />, label: 'My Activity', href: '/dashboard/user/activity' },
+  { icon: <LayoutDashboard className="w-5 h-5" />, label: 'Help & Support', href: '/dashboard/user/support' },
 ];
 
 const vendorNavItems: NavItem[] = [
