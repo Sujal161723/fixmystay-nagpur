@@ -26,30 +26,20 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasRedirected, setHasRedirected] = useState(false);
 
+  // Check if user is already logged in on mount (only once)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user);
-      if (user) {
+      if (user && !hasRedirected) {
+        setHasRedirected(true);
         // Redirect based on user type - check Firestore for user type
         const userType = localStorage.getItem('userType') || 'user';
         router.push(`/dashboard/${userType}`);
       }
     });
     return () => unsubscribe();
-  }, [router]);
-
-  if (isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Redirecting...</p>
-        </div>
-      </div>
-    );
-  }
+  }, [router, hasRedirected]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
