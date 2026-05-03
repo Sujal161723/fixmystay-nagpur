@@ -34,20 +34,28 @@ export default function SignInPage() {
 
     try {
       if (mode === 'signin') {
+        console.log('Attempting login...');
         await signInWithEmailAndPassword(auth, email, password);
-        // Redirect to dashboard after successful login
-        router.push('/dashboard/user');
+        console.log('Login success! Redirecting to dashboard...');
+        // Small delay to ensure auth state is updated
+        setTimeout(() => {
+          router.push('/dashboard/user');
+        }, 100);
       } else if (mode === 'signup') {
         if (password !== confirmPassword) {
           setError('Passwords do not match');
           setLoading(false);
           return;
         }
+        console.log('Attempting signup...');
         await createUserWithEmailAndPassword(auth, email, password);
+        console.log('Signup success! Setting user type and redirecting...');
         // Set default user type
         localStorage.setItem('userType', 'user');
-        // Redirect to dashboard after successful signup
-        router.push('/dashboard/user');
+        // Small delay to ensure auth state is updated
+        setTimeout(() => {
+          router.push('/dashboard/user');
+        }, 100);
       } else if (mode === 'forgot') {
         await sendPasswordResetEmail(auth, email);
         setSuccess('Password reset email sent. Check your inbox.');
